@@ -1,6 +1,7 @@
 /* ========================================
    GLOBAL STYLES & CSS VARIABLES
    ======================================== */
+
 *,
 *::before,
 *::after {
@@ -14,7 +15,6 @@
   --black: #0F0F0F;
   --gray: #2A2A2A;
   --white: #FFFFFF;
-  --light-gray: #f5f5f5;
   --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-strong: 0 4px 24px rgba(0, 0, 0, 0.5);
   --radius-sm: 12px;
@@ -34,17 +34,12 @@ body {
 }
 
 img {
-  max-width: 100%;
   display: block;
+  max-width: 100%;
 }
 
 a {
   text-decoration: none;
-}
-
-h2,
-p {
-  padding: 0;
 }
 
 /* ========================================
@@ -86,7 +81,7 @@ p {
   gap: 20px;
   min-height: 90px;
   padding: 0 20px;
-  background-color: var(--black);
+  background: var(--black);
   text-align: center;
   border-bottom: 2px solid var(--dark-red);
   box-shadow: var(--shadow-strong);
@@ -101,7 +96,7 @@ p {
 .logo img {
   height: 100px;
   width: auto;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition);
 }
 
 .logo img:hover {
@@ -119,16 +114,16 @@ p {
 
 .nav-links a {
   position: relative;
+  padding: 10px 12px;
+  border-radius: 8px;
   color: var(--white);
   font-size: 18px;
   font-weight: 700;
-  padding: 10px 12px;
-  border-radius: 8px;
   transition: var(--transition);
 }
 
 .nav-links a:hover {
-  background-color: var(--dark-red);
+  background: var(--dark-red);
 }
 
 .nav-links a::after {
@@ -136,10 +131,10 @@ p {
   position: absolute;
   left: 0;
   bottom: -5px;
-  width: 0%;
+  width: 0;
   height: 3px;
-  background-color: var(--dark-red);
-  transition: 0.3s ease;
+  background: var(--dark-red);
+  transition: var(--transition);
 }
 
 .nav-links a:hover::after {
@@ -156,14 +151,9 @@ p {
 .products-hero {
   position: relative;
   overflow: hidden;
+  padding: 80px 20px;
   text-align: center;
   color: var(--white);
-}
-
-.hero-container,
-.about-hero,
-.contact-hero {
-  background-color: var(--black);
 }
 
 .hero-container {
@@ -173,14 +163,38 @@ p {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--black) url("./images/hero-img.webp") center / cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+              url("./images/hero-img.webp") center / cover no-repeat;
+}
+
+.about-hero,
+.contact-hero,
+.products-hero {
+  background: var(--black);
 }
 
 .hero-container h2 {
   max-width: 900px;
-  font-size: clamp(30px, 4vw, 48px);
   color: var(--white);
+  font-size: clamp(30px, 4vw, 48px);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.about-hero h1,
+.contact-hero h1,
+.products-hero h1 {
+  margin-bottom: 15px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(44px, 6vw, 72px);
+  letter-spacing: 2px;
+}
+
+.about-hero p,
+.contact-hero p,
+.products-hero p {
+  margin-top: 12px;
+  color: var(--white);
+  font-size: 17px;
 }
 
 .hero-container button {
@@ -190,67 +204,17 @@ p {
   padding: 0 24px;
   border: 2px solid var(--white);
   border-radius: var(--radius-md);
-  background-color: var(--dark-red);
+  background: var(--dark-red);
   color: var(--white);
-  cursor: pointer;
   font-weight: 700;
+  cursor: pointer;
   transition: var(--transition);
 }
 
 .hero-container button:hover {
   transform: scale(1.1);
-  background-color: var(--white);
+  background: var(--white);
   color: var(--dark-red);
-}
-
-.about-hero,
-.contact-hero {
-  padding: 80px 20px;
-}
-
-.about-hero h1,
-.contact-hero h1,
-.products-hero h1 {
-  margin-bottom: 15px;
-  letter-spacing: 2px;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.about-hero h1,
-.contact-hero h1 {
-  font-size: clamp(44px, 6vw, 72px);
-}
-
-.about-hero p,
-.contact-hero p,
-.products-hero p {
-  margin-top: 12px;
-  font-size: 17px;
-}
-
-.contact-hero a {
-  margin-top: 12px;
-  color: var(--dark-red);
-  font-size: 17px;
-}
-
-.contact-hero span {
-  color: var(--white);
-}
-
-.products-hero {
-  padding: 60px 20px;
-  background-color: var(--dark-red);
-}
-
-.products-hero h1 {
-  font-size: clamp(34px, 5vw, 40px);
-}
-
-.products-hero p {
-  max-width: 700px;
-  margin: 0 auto;
-  color: var(--white);
 }
 
 /* ========================================
@@ -274,11 +238,11 @@ p {
   margin: 10px 0 12px;
   color: var(--black);
   text-align: center;
-  text-transform: uppercase;
-  line-height: 1.2;
-  letter-spacing: 1px;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .section-title span {
@@ -291,6 +255,25 @@ p {
   color: var(--gray);
   text-align: center;
   font-size: 16px;
+}
+
+.section-header,
+.section-header-spaced {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.section-header-spaced {
+  margin-top: 60px;
+}
+
+.section-note {
+  margin: 0 auto 20px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 /* ========================================
@@ -323,7 +306,6 @@ p {
   align-items: center;
   justify-items: center;
   gap: 40px;
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -364,13 +346,13 @@ p {
 }
 
 .story-list::before {
-  content: '✓';
-  width: 25px;
-  height: 25px;
-  flex-shrink: 0;
+  content: "✓";
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: var(--dark-red);
   color: var(--white);
@@ -387,8 +369,8 @@ p {
 .product-card button {
   display: inline-block;
   border-radius: var(--radius-sm);
-  cursor: pointer;
   font-weight: 700;
+  cursor: pointer;
   transition: var(--transition);
 }
 
@@ -421,9 +403,9 @@ p {
 }
 
 .btn-white:hover {
+  transform: translateY(-2px);
   background: var(--black);
   color: var(--white);
-  transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
@@ -431,16 +413,11 @@ p {
    VALUES CARDS
    ======================================== */
 
-.values-section {
-  padding: 80px 5%;
+.values-section,
+.contact-section,
+.channels-section {
+  padding: 80px 0;
   background: var(--white);
-}
-
-.footer-grid,
-.category-box,
-.info-grid,
-.products-container {
-  display: grid;
 }
 
 .values-grid,
@@ -457,8 +434,10 @@ p {
 
 .value-card,
 .channel-card,
-.product-card {
-  transition: transform 0.2s ease;
+.product-card,
+.category-card,
+.contact-item,
+.footer {
   animation: fadeIn 1s ease;
 }
 
@@ -474,11 +453,12 @@ p {
   background: var(--white);
   border-top: 3px solid var(--dark-red);
   box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease;
 }
 
 .value-card:hover,
-.product-card:hover,
-.channel-card:hover {
+.channel-card:hover,
+.product-card:hover {
   transform: translateY(-4px);
 }
 
@@ -499,8 +479,6 @@ p {
 
 .value-card p,
 .channel-card p {
-  margin: 0;
-  padding: 0;
   color: var(--gray);
   font-size: 14px;
   line-height: 1.7;
@@ -508,6 +486,22 @@ p {
 
 .value-card p {
   text-align: left;
+}
+
+.channel-card {
+  padding: 36px 24px;
+  border: 1.5px solid var(--gray);
+  border-top: 3px solid var(--dark-red);
+  background: var(--white);
+  text-align: center;
+}
+
+.channel-card:hover {
+  box-shadow: 0 16px 40px rgba(215, 35, 35, 0.1);
+}
+
+.channel-card p {
+  margin-bottom: 24px;
 }
 
 /* ========================================
@@ -523,6 +517,13 @@ p {
   text-align: center;
 }
 
+.category-box,
+.info-grid,
+.products-container,
+.footer-grid {
+  display: grid;
+}
+
 .category-box {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
@@ -532,18 +533,17 @@ p {
 .category-card {
   padding: 20px;
   border-radius: var(--radius-md);
-  background-color: var(--dark-red);
+  background: var(--dark-red);
   color: var(--white);
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
-  animation: fadeIn 1s ease;
 }
 
 .category-card:hover {
-  background-color: var(--black);
   transform: translateY(-2px);
+  background: var(--black);
 }
 
 .products-container {
@@ -554,9 +554,10 @@ p {
 .product-card {
   padding: 20px;
   border-radius: var(--radius-md);
-  background-color: var(--dark-red);
+  background: var(--dark-red);
   color: var(--white);
   text-align: center;
+  transition: transform 0.2s ease;
 }
 
 .product-card img {
@@ -588,23 +589,18 @@ p {
   padding: 12px 25px;
   border: 2px solid var(--white);
   border-radius: 30px;
-  background-color: transparent;
+  background: transparent;
   color: var(--white);
 }
 
 .product-card button:hover {
-  background-color: var(--white);
+  background: var(--white);
   color: var(--dark-red);
 }
 
 /* ========================================
    CONTACT SECTION
    ======================================== */
-
-.contact-section {
-  padding: 80px 0;
-  background: var(--white);
-}
 
 .info-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -618,16 +614,15 @@ p {
   align-items: flex-start;
   gap: 16px;
   text-align: left;
-  animation: fadeIn 1s ease;
 }
 
 .contact-item .ci-icon {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
   border-radius: 10px;
   background: rgba(215, 35, 35, 0.1);
   font-size: 20px;
@@ -643,40 +638,10 @@ p {
 }
 
 .contact-item p {
-  margin: 0;
   color: var(--gray);
   text-align: left;
   font-size: 14px;
   line-height: 1.7;
-}
-
-/* ========================================
-   CHANNELS / CONTACT METHODS
-   ======================================== */
-
-.channels-section {
-  padding: 80px 0;
-  background: var(--white);
-}
-
-.channels-grid {
-  margin-top: 24px;
-}
-
-.channel-card {
-  padding: 36px 24px;
-  border: 1.5px solid var(--gray);
-  border-top: 3px solid var(--dark-red);
-  background: var(--white);
-  text-align: center;
-}
-
-.channel-card:hover {
-  box-shadow: 0 16px 40px rgba(215, 35, 35, 0.1);
-}
-
-.channel-card p {
-  margin-bottom: 24px;
 }
 
 /* ========================================
@@ -717,13 +682,11 @@ p {
   padding: 56px 20px 28px;
   border-top: 2px solid var(--dark-red);
   background: var(--black);
-  animation: fadeIn 1s ease;
 }
 
 .footer-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 48px;
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   text-align: left;
@@ -745,9 +708,6 @@ p {
 
 .footer-brand p {
   max-width: 260px;
-  margin: 0;
-  padding: 0;
-  text-align: left;
   line-height: 1.7;
 }
 
@@ -777,7 +737,6 @@ p {
   position: relative;
   display: flex;
   align-items: flex-start;
-  margin: 0;
   padding-left: 25px;
   line-height: 1.5;
 }
@@ -790,7 +749,6 @@ p {
 }
 
 .footer-bottom {
-  width: 100%;
   max-width: 1200px;
   margin: 32px auto 0;
   padding: 15px 20px 0;
@@ -799,8 +757,6 @@ p {
 }
 
 .footer-bottom p {
-  margin: 0;
-  padding: 0;
   font-size: 13px;
 }
 
@@ -809,10 +765,7 @@ p {
    ======================================== */
 
 @media (max-width: 1024px) {
-  .products-container {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+  .about-grid,
   .category-box,
   .footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -820,6 +773,10 @@ p {
 
   .about-grid {
     grid-template-columns: 1fr;
+  }
+
+  .products-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .value-card p {
