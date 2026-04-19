@@ -855,7 +855,12 @@ p {
   }
 
   .footer-col h4,
+  .footer-brand {
+    text-align: center;
+  }
+
   .footer-brand p {
+    margin: 0 auto;
     text-align: center;
   }
 
