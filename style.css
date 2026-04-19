@@ -454,6 +454,7 @@ a {
   border-top: 3px solid var(--dark-red);
   box-shadow: var(--shadow-soft);
   transition: transform 0.2s ease;
+  text-align: center;
 }
 
 .value-card:hover,
