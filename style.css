@@ -1,6 +1,7 @@
 /* ========================================
    GLOBAL STYLES & CSS VARIABLES
    ======================================== */
+
 *,
 *::before,
 *::after {
@@ -19,7 +20,7 @@
   --shadow-strong: 0 4px 24px rgba(0, 0, 0, 0.5);
   --radius-sm: 12px;
   --radius-md: 20px;
-  --transition: all 0.2s ease;
+  --transition: all 0.3s ease;
 }
 
 html {
@@ -48,6 +49,32 @@ p {
 }
 
 /* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
    NAVIGATION BAR - All Pages
    ======================================== */
 
@@ -64,6 +91,7 @@ p {
   text-align: center;
   border-bottom: 2px solid var(--dark-red);
   box-shadow: var(--shadow-strong);
+  animation: slideDown 0.8s ease;
 }
 
 .logo {
@@ -74,6 +102,11 @@ p {
 .logo img {
   height: 100px;
   width: auto;
+  transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+  transform: scale(1.1);
 }
 
 .nav-links {
@@ -86,16 +119,32 @@ p {
 }
 
 .nav-links a {
+  position: relative;
   color: var(--white);
   font-size: 18px;
   font-weight: 700;
   padding: 10px 12px;
+  border-radius: 8px;
   transition: var(--transition);
 }
 
 .nav-links a:hover {
-  color: var(--dark-red);
-  border-bottom: 2px solid var(--dark-red);
+  background-color: var(--dark-red);
+}
+
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0%;
+  height: 3px;
+  background-color: var(--dark-red);
+  transition: 0.3s ease;
+}
+
+.nav-links a:hover::after {
+  width: 100%;
 }
 
 /* ========================================
@@ -150,6 +199,7 @@ p {
 }
 
 .hero-container button:hover {
+  transform: scale(1.1);
   background-color: var(--white);
   color: var(--dark-red);
 }
@@ -410,6 +460,7 @@ p {
 .channel-card,
 .product-card {
   transition: transform 0.2s ease;
+  animation: fadeIn 1s ease;
 }
 
 .value-card,
@@ -488,6 +539,7 @@ p {
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
+  animation: fadeIn 1s ease;
 }
 
 .category-card:hover {
@@ -567,6 +619,7 @@ p {
   align-items: flex-start;
   gap: 16px;
   text-align: left;
+  animation: fadeIn 1s ease;
 }
 
 .contact-item .ci-icon {
@@ -665,6 +718,7 @@ p {
   padding: 56px 20px 28px;
   border-top: 2px solid var(--dark-red);
   background: var(--black);
+  animation: fadeIn 1s ease;
 }
 
 .footer-grid {
@@ -934,7 +988,6 @@ p {
   }
 
   .contact-item p,
-  .story,
   .value-card p {
     text-align: center;
   }
