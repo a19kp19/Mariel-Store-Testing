@@ -105,9 +105,18 @@
 .user-name-btn {
   color: var(--light);
   font-size: 15px;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name-btn::before {
+  content: "👤";
+  font-size: 16px;
+  line-height: 1;
 }
 
 .user-name-btn:hover {
