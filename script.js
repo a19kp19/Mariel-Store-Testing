@@ -327,18 +327,14 @@ async function updateNavAuthState() {
     return;
   }
 
-  if (registerLink) {
-    registerLink.classList.add("hidden");
+  if (authLinks) {
+    authLinks.classList.add("hidden");
   }
-
-  if (loginLink) {
-    loginLink.classList.add("hidden");
-  }
-
+  
   if (userMenu) {
     userMenu.classList.remove("hidden");
   }
-
+  
   if (userNameBtn) {
     userNameBtn.textContent = getDisplayName(userData.user);
   }
