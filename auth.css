@@ -103,14 +103,19 @@
 }
 
 .user-name-btn {
-  color: var(--light);
-  font-size: 15px;
-  font-weight: 700;
-  font-family: Georgia, "Times New Roman", serif;
-  cursor: pointer;
+  font-family: "Courier New", monospace !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--light) !important;
+
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+
+  position: relative;
+  top: -4px; /* moves it slightly higher */
+
+  text-transform: none !important;
 }
 
 .user-name-btn::before {
