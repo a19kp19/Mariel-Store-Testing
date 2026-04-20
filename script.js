@@ -307,14 +307,10 @@ async function updateNavAuthState() {
     accountNavLink.href = getPagePath("account.html");
   }
 
-  if (registerLink) {
-    registerLink.classList.remove("hidden");
+  if (authLinks) {
+    authLinks.classList.remove("hidden");
   }
-
-  if (loginLink) {
-    loginLink.classList.remove("hidden");
-  }
-
+  
   if (userMenu) {
     userMenu.classList.add("hidden");
   }
