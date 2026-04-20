@@ -9,20 +9,23 @@
 <body>
 
   <nav>
-    <div class="wrap">
-      <div class="logo">
-        <img src="images/logo.png" alt="Mariel Store Logo">
-      </div>
-
-      <ul class="nav-links">
-        <li><a href="index.html" class="active">Home</a></li>
-        <li><a href="pages/about.html">About</a></li>
-        <li><a href="pages/services.html">Services</a></li>
-        <li><a href="pages/products.html">Products</a></li>
-        <li><a href="pages/contact.html">Contact</a></li>
-      </ul>
+  <div class="wrap">
+    <div class="logo">
+      <img src="images/logo.png" alt="Mariel Store Logo">
     </div>
-  </nav>
+
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="pages/about.html">About</a></li>
+      <li><a href="pages/services.html">Services</a></li>
+      <li><a href="pages/products.html">Products</a></li>
+      <li><a href="pages/contact.html">Contact</a></li>
+      <li id="register-link"><a href="pages/register.html">Register</a></li>
+      <li id="login-link"><a href="pages/login.html">Login</a></li>
+      <li id="logout-link" class="hidden"><a href="#" id="logout-btn">Logout</a></li>
+    </ul>
+  </div>
+</nav>
 
   <section class="hero hero-home">
   <div class="wrap center">
@@ -89,7 +92,7 @@
     </div>
   </section>
 
-  <footer>
+    <footer>
     <div class="wrap">
       <div class="footer-row">
         <div class="footer-wide">
@@ -124,5 +127,7 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>
