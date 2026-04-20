@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Mariel Store</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <nav>
+    <div class="wrap">
+      <div class="logo">
+        <img src="../images/logo.png" alt="Mariel Store Logo">
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li id="register-link"><a href="register.html">Register</a></li>
+        <li id="login-link"><a href="login.html" class="active">Login</a></li>
+        <li id="logout-link" class="hidden"><a href="#" id="logout-btn">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="page-header">
+    <div class="wrap">
+      <h1>Login to <em>Mariel Store</em></h1>
+      <p>Sign in with your account.</p>
+    </div>
+  </section>
+
+  <section class="section-white">
+    <div class="wrap">
+      <div class="auth-form">
+        <h2>Welcome <em>Back</em></h2>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+
+          <button type="submit" class="btn">Login</button>
+        </form>
+
+        <p id="login-message"></p>
+
+        <p class="auth-divider" style="text-align: center; margin: 20px 0;">or continue with</p>
+
+        <div class="social-login">
+          <button type="button" id="google-login" class="social-btn" aria-label="Login with Google">
+            <span class="social-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.7 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.6 14.6 2.7 12 2.7 6.9 2.7 2.7 6.9 2.7 12S6.9 21.3 12 21.3c6.9 0 9.1-4.8 9.1-7.3 0-.5 0-.8-.1-1.2H12z"/>
+                <path fill="#34A853" d="M3.8 7.4l3.2 2.3C7.9 8 9.8 6.6 12 6.6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.6 14.6 2.7 12 2.7 8.3 2.7 5.1 4.8 3.8 7.4z"/>
+                <path fill="#FBBC05" d="M3.8 16.6l3.2-2.3C6.7 13.7 6.6 12.9 6.6 12c0-.9.1-1.7.4-2.3L3.8 7.4C3.1 8.8 2.7 10.3 2.7 12s.4 3.2 1.1 4.6z"/>
+                <path fill="#4285F4" d="M12 21.3c2.5 0 4.7-.8 6.3-2.3l-3-2.4c-.8.6-1.9 1-3.3 1-2.2 0-4.1-1.4-4.8-3.4l-3.2 2.3c1.3 2.7 4.5 4.8 8 4.8z"/>
+              </svg>
+            </span>
+          </button>
+
+          <button type="button" id="show-phone-login" class="social-btn" aria-label="Login with Phone Number">
+            <span class="social-icon">📞</span>
+          </button>
+        </div>
+
+        <div id="phone-login-box" class="phone-login-box hidden">
+          <div class="form-group">
+            <label for="phone-number">Phone Number</label>
+            <input type="text" id="phone-number" placeholder="+639XXXXXXXXX">
+          </div>
+
+          <div class="form-group">
+            <button type="button" id="send-phone-code" class="btn">Send Code</button>
+          </div>
+
+          <div class="form-group">
+            <label for="phone-code">OTP Code</label>
+            <input type="text" id="phone-code" placeholder="Enter OTP">
+          </div>
+
+          <button type="button" id="verify-phone-code" class="btn">Verify and Login</button>
+
+          <p id="phone-message"></p>
+        </div>
+
+        <p class="auth-switch">
+          Don’t have an account?
+          <a href="register.html">Register here</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../script.js"></script>
+</body>
+</html>
