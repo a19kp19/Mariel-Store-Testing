@@ -285,6 +285,7 @@ if (verifyPhoneCodeButton) {
    NAV LINKS + USER MENU
 ========================= */
 async function updateNavAuthState() {
+  const authLinks = document.getElementById("auth-links");
   const registerLink = document.getElementById("register-link");
   const loginLink = document.getElementById("login-link");
   const userMenu = document.getElementById("user-menu");
