@@ -1,3 +1,7 @@
+/* ==============================================
+   MARIEL STORE - SIMPLE STYLESHEET
+   ============================================== */
+
 :root {
   --main: #a81919;
   --dark: #0f0f0f;
@@ -341,12 +345,44 @@ h2 em {
 
 .cat {
   min-width: 180px;
-  text-align: center;
-  background: var(--main);
-  color: var(--light);
-  padding: 16px 20px;
-  font-weight: 700;
+  padding: 40px 20px;
   border-radius: 10px;
+  text-align: center;
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.cat span {
+  position: relative;
+  z-index: 1;
+}
+
+.furnitures {
+  background-image: url("./images/products/furniture.jpg");
+}
+
+.gadgets {
+  background-image: url("./images/products/gadgets.jpg");
+}
+
+.accessories {
+  background-image: url("./images/products/accessories.jpg");
+}
+
+.foods {
+  background-image: url("./images/products/foods.jpg");
 }
 
 /* ==============================================
