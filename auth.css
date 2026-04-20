@@ -31,13 +31,6 @@
   font-size: 14px;
 }
 
-.auth-links {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  white-space: nowrap;
-}
-
 .auth-switch {
   margin-top: 14px;
   font-size: 14px;
@@ -104,6 +97,20 @@
   display: none !important;
 }
 
+/* auth links in nav */
+.auth-links {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.nav-separator {
+  color: #777;
+  margin: 0 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* user dropdown */
 .user-menu {
   position: relative;
@@ -114,32 +121,21 @@
   font-size: 13px !important;
   font-weight: 600 !important;
   color: var(--light) !important;
-
   display: inline-flex;
   align-items: center;
   gap: 6px;
-
   position: relative;
-  top: -4px; /* moves it slightly higher */
-
+  top: -2px;
   text-transform: none !important;
 }
 
 .user-name-btn::before {
   content: "👤";
-  font-size: 16px;
-  line-height: 1;
+  font-size: 14px;
 }
 
 .user-name-btn:hover {
-  color: var(--main);
-}
-
-.nav-separator {
-  color: #777;
-  margin: 0 8px;
-  display: flex;
-  align-items: center;
+  color: var(--main) !important;
 }
 
 .user-dropdown {
@@ -170,6 +166,7 @@
   padding: 12px 14px;
   color: var(--text);
   font-size: 14px;
+  font-weight: 500;
   text-transform: none;
 }
 
