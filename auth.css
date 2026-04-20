@@ -31,6 +31,13 @@
   font-size: 14px;
 }
 
+.auth-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+}
+
 .auth-switch {
   margin-top: 14px;
   font-size: 14px;
