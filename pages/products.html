@@ -7,126 +7,120 @@
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <nav class="navbar-container">
-    <div class="logo">
-      <img src="../images/logo.png" alt="Mariel Store Logo">
-    </div>
 
-    <ul class="nav-links">
-      <li><a href="../index.html">Home</a></li>
-      <li><a href="./about.html">About</a></li>
-      <li><a href="./services.html">Services</a></li>
-      <li><a href="./products.html">Products</a></li>
-      <li><a href="./contact.html">Contact</a></li>
-    </ul>
+  <nav>
+    <div class="wrap">
+      <div class="logo">
+        <img src="../images/logo.png" alt="Mariel Store Logo">
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="products.html" class="active">Products</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
   </nav>
 
-  <section class="products-hero">
-    <h1>Our Products</h1>
-    <p>Our collection of different kinds of products that is suitable for various needs and preferences.</p>
-  </section>
-
-  <section class="product-category">
-    <h2>Product Categories</h2>
-    <div class="category-box">
-      <div class="category-card">Furnitures</div>
-      <div class="category-card">Gadgets</div>
-      <div class="category-card">Accessories</div>
-      <div class="category-card">Foods</div>
+  <section class="page-header">
+    <div class="wrap">
+      <h1>Our <em>Products</em></h1>
+      <p>Browse our collection of different products for various needs and preferences.</p>
     </div>
   </section>
 
-  <section>
-    <p class="section-note">Check out our latest products added to our collection.</p>
-  </section>
-
-  <section class="products-container">
-    <div class="product-card">
-      <img src="../images/products/Snickers.jpg" alt="Snickers chocolates">
-      <h2>Chocolates</h2>
-      <p>Delicious and satisfying chocolate bar.</p>
-      <h3>₱20.00</h3>
-      <button>Buy Now</button>
+  <section class="section">
+    <div class="wrap center">
+      <h2>Product <em>Categories</em></h2>
     </div>
 
-    <div class="product-card">
-      <img src="../images/products/Clock.jpg" alt="Wall clock">
-      <h2>Wall Clock</h2>
-      <p>Affordable and durable house clock.</p>
-      <h3>₱200.00</h3>
-      <button>Buy Now</button>
-    </div>
-
-    <div class="product-card">
-      <img src="../images/products/Chocolates.jpg" alt="Chocolate box">
-      <h2>Chocolates</h2>
-      <p>Delicious and satisfying chocolate bar.</p>
-      <h3>₱20.00</h3>
-      <button>Buy Now</button>
-    </div>
-
-    <div class="product-card">
-      <img src="../images/products/Ipad.jpg" alt="iPad">
-      <h2>iPad</h2>
-      <p>Latest model with impressive features.</p>
-      <h3>₱25,000.00</h3>
-      <button>Buy Now</button>
-    </div>
-
-    <div class="product-card">
-      <img src="../images/products/Iphone12.jpg" alt="iPhone 12 Pro Max">
-      <h2>iPhone 12 Pro Max</h2>
-      <p>256GB Storage with warranty.</p>
-      <h3>₱40,000.00</h3>
-      <button>Buy Now</button>
-    </div>
-
-    <div class="product-card">
-      <img src="../images/products/Iphone14.jpg" alt="iPhone 14 Pro">
-      <h2>iPhone 14 Pro</h2>
-      <p>128GB Storage with warranty.</p>
-      <h3>₱50,000.00</h3>
-      <button>Buy Now</button>
+    <div class="wrap">
+      <div class="product-cats">
+        <div class="cat">Furnitures</div>
+        <div class="cat">Gadgets</div>
+        <div class="cat">Accessories</div>
+        <div class="cat">Foods</div>
+      </div>
     </div>
   </section>
 
-  <footer class="footer">
-    <div class="foot-container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <img src="../images/logo.png" alt="Mariel Store logo">
-          <p>Your trusted online shop for quality appliances and home products, delivered straight to your door.</p>
+  <section class="section-white">
+    <div class="wrap center">
+      <h2>Featured <em>Products</em></h2>
+      <p>Here are some of the items currently available in our store.</p>
+    </div>
+
+    <div class="wrap">
+      <div class="products">
+        <div class="product">
+          <img src="../images/products/Snickers.jpg" alt="Snickers chocolates">
+          <div class="product-info">
+            <h3>Chocolates</h3>
+            <p>Delicious and satisfying chocolate product.</p>
+            <strong>₱20.00</strong>
+            <a href="contact.html" class="btn">Buy Now</a>
+          </div>
+        </div>
+
+        <div class="product">
+          <img src="../images/products/Clock.jpg" alt="Wall clock">
+          <div class="product-info">
+            <h3>Wall Clock</h3>
+            <p>Affordable and durable clock for home use.</p>
+            <strong>₱200.00</strong>
+            <a href="contact.html" class="btn">Buy Now</a>
+          </div>
+        </div>
+
+        <div class="product">
+          <img src="../images/products/Iphone14.jpg" alt="iPhone 14 Pro">
+          <div class="product-info">
+            <h3>iPhone 14 Pro</h3>
+            <p>128GB storage with good features and warranty.</p>
+            <strong>₱50,000.00</strong>
+            <a href="contact.html" class="btn">Buy Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-row">
+        <div class="footer-wide">
+          <div class="logo">
+            <img src="../images/logo.png" alt="Mariel Store Logo">
+          </div>
+          <p class="footer-tagline">Your trusted online shop for quality appliances and home products, delivered straight to your door.</p>
         </div>
 
         <div class="footer-col">
-          <h4>Navigation</h4>
-          <a href="../index.html">Home</a>
-          <a href="about.html">About Us</a>
-          <a href="services.html">Services</a>
-          <a href="products.html">Products</a>
-          <a href="contact.html">Contact</a>
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
         </div>
 
-        <div class="footer-col">
-          <h4>Products</h4>
-          <a href="products.html">Furnitures</a>
-          <a href="products.html">Gadgets</a>
-          <a href="products.html">Accessories</a>
-          <a href="products.html">Foods</a>
-        </div>
-
-        <div class="footer-col">
+        <div class="footer-col footer-contact">
           <h4>Contact</h4>
-          <p><span>📍</span>Philippines</p>
-          <p><span>📦</span>Deliver Anywhere</p>
-          <p><span>💳</span>Paluwagan / Installments</p>
+          <p><strong>Location:</strong> Philippines</p>
+          <p><strong>Delivery:</strong> Nationwide</p>
+          <p><strong>Payment:</strong> COD / Online / Installment</p>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <p>© 2026 Mariel Online Shop. All rights reserved.</p>
+        <p>© 2026 Mariel Store. All rights reserved.</p>
       </div>
     </div>
   </footer>
+
 </body>
 </html>
