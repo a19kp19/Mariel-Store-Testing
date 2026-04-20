@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Mariel Store</title>
   <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../auth.css">
 </head>
 <body>
 
@@ -20,9 +21,15 @@
         <li><a href="services.html">Services</a></li>
         <li><a href="products.html">Products</a></li>
         <li><a href="contact.html">Contact</a></li>
-        <li id="register-link"><a href="register.html">Register</a></li>
-        <li id="login-link"><a href="login.html" class="active">Login</a></li>
-        <li id="logout-link" class="hidden"><a href="#" id="logout-btn">Logout</a></li>
+        <li id="register-link"><a id="register-nav-link" href="#">Register</a></li>
+        <li id="login-link"><a id="login-nav-link" href="#" class="active">Login</a></li>
+        <li id="user-menu" class="user-menu hidden">
+          <a href="#" id="user-name-btn" class="user-name-btn">Account</a>
+          <ul class="user-dropdown">
+            <li><a id="account-nav-link" href="#">My Account</a></li>
+            <li><a href="#" id="logout-btn">Logout</a></li>
+          </ul>
+        </li>
       </ul>
     </div>
   </nav>
@@ -55,7 +62,7 @@
 
         <p id="login-message"></p>
 
-        <p class="auth-divider" style="text-align: center; margin: 20px 0;">or continue with</p>
+        <p class="auth-divider">or continue with</p>
 
         <div class="social-login">
           <button type="button" id="google-login" class="social-btn" aria-label="Login with Google">
