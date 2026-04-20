@@ -50,102 +50,6 @@ ul {
 }
 
 /* ==============================================
-   REGISTRATION
-   ============================================== */
-
-.auth-form {
-  max-width: 500px;
-  margin: 0 auto;
-  background: var(--light);
-  border: 1px solid var(--border);
-  padding: 24px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border);
-  font: inherit;
-}
-
-#form-message {
-  margin-top: 14px;
-  font-size: 14px;
-}
-
-.auth-switch {
-  margin-top: 14px;
-  font-size: 14px;
-}
-
-.auth-switch a {
-  color: var(--main);
-  font-weight: 600;
-}
-
-.password-hint {
-  margin-top: 6px;
-  font-size: 14px;
-}
-
-/* ==============================================
-   LOGIN
-   ============================================== */
-
-.social-login {
-  display: flex;
-  gap: 12px;
-  margin-top: 18px;
-  margin-bottom: 18px;
-}
-
-.social-btn {
-  width: 52px;
-  height: 52px;
-  border: 1px solid var(--border);
-  background: var(--light);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.social-btn:hover {
-  border-color: var(--main);
-}
-
-.social-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-.social-icon svg {
-  width: 22px;
-  height: 22px;
-  display: block;
-}
-
-.phone-login-box {
-  margin-top: 18px;
-}
-
-.hidden {
-  display: none;
-}
-
-/* ==============================================
    NAVBAR
    ============================================== */
 
@@ -171,6 +75,7 @@ nav .wrap {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .nav-links a {
@@ -438,14 +343,14 @@ h2 em {
 .cat {
   min-width: 180px;
   width: 100%;
-  max-width: 90px;
-  height: 100px;
-  padding: 40px 20px;
+  max-width: 150px;
+  height: 90px;
+  padding: 20px;
   border-radius: 10px;
   text-align: center;
   color: white;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 18px;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -672,7 +577,6 @@ footer {
 
 @media (max-width: 768px) {
   nav .wrap,
-  .hero .wrap,
   .two-col,
   .cards,
   .products,
@@ -683,22 +587,17 @@ footer {
     flex-direction: column;
   }
 
-  .hero-text h1,
-  .hero-text h2,
+  .hero h1,
+  .hero h2,
   .page-header h1 {
     font-size: 30px;
   }
 
-  .logo img,
-  .footer-brand img {
+  .logo img {
     height: 70px;
   }
 
   .nav-links {
     justify-content: center;
-  }
-
-  .hero-img img {
-    height: 280px;
   }
 }
