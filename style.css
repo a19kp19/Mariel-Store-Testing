@@ -345,6 +345,9 @@ h2 em {
 
 .cat {
   min-width: 180px;
+  width: 100%;
+  max-width: 90px;
+  height: 100px;
   padding: 40px 20px;
   border-radius: 10px;
   text-align: center;
@@ -355,6 +358,9 @@ h2 em {
   background-position: center;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cat::before {
