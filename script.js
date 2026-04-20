@@ -1,6 +1,7 @@
 const supabaseUrl = "https://iqkjkteojcgnzivhhwqx.supabase.co";
 const supabaseKey = "sb_publishable_YbDZQCCV_1Yk8KQPJuuQ1w_TkXhkLbC";
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
 /* =========================
    HELPERS
 ========================= */
@@ -17,8 +18,16 @@ function goTo(path, delay = 1500) {
   }, delay);
 }
 
+function isPagesPath() {
+  return window.location.pathname.includes("/pages/");
+}
+
 function getHomePath() {
-  return window.location.pathname.includes("/pages/") ? "../index.html" : "index.html";
+  return isPagesPath() ? "../index.html" : "index.html";
+}
+
+function getPagePath(fileName) {
+  return isPagesPath() ? fileName : `pages/${fileName}`;
 }
 
 function isStrongPassword(password) {
@@ -27,6 +36,23 @@ function isStrongPassword(password) {
     /[a-z]/.test(password) &&
     /[0-9]/.test(password) &&
     /[^A-Za-z0-9]/.test(password)
+  );
+}
+
+function getDisplayName(user) {
+  if (!user) {
+    return "Account";
+  }
+
+  const meta = user.user_metadata || {};
+
+  return (
+    meta.username ||
+    meta.user_name ||
+    meta.full_name ||
+    (user.email ? user.email.split("@")[0] : "") ||
+    user.phone ||
+    "Account"
   );
 }
 
@@ -72,6 +98,7 @@ if (registerForm) {
   registerForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
+    const username = document.getElementById("username").value.trim();
     const fullName = document.getElementById("full-name").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -79,7 +106,7 @@ if (registerForm) {
 
     setText("form-message", "");
 
-    if (!fullName || !email || !password || !confirmPassword) {
+    if (!username || !fullName || !email || !password || !confirmPassword) {
       setText("form-message", "Please fill in all fields.");
       return;
     }
@@ -100,6 +127,7 @@ if (registerForm) {
       password: password,
       options: {
         data: {
+          username: username,
           full_name: fullName
         }
       }
@@ -254,13 +282,29 @@ if (verifyPhoneCodeButton) {
 }
 
 /* =========================
-   NAV AUTH STATE + LOGOUT
+   NAV LINKS + USER MENU
 ========================= */
 async function updateNavAuthState() {
   const registerLink = document.getElementById("register-link");
   const loginLink = document.getElementById("login-link");
-  const logoutLink = document.getElementById("logout-link");
+  const userMenu = document.getElementById("user-menu");
+  const userNameBtn = document.getElementById("user-name-btn");
+  const registerNavLink = document.getElementById("register-nav-link");
+  const loginNavLink = document.getElementById("login-nav-link");
+  const accountNavLink = document.getElementById("account-nav-link");
   const logoutButton = document.getElementById("logout-btn");
+
+  if (registerNavLink) {
+    registerNavLink.href = getPagePath("register.html");
+  }
+
+  if (loginNavLink) {
+    loginNavLink.href = getPagePath("login.html");
+  }
+
+  if (accountNavLink) {
+    accountNavLink.href = getPagePath("account.html");
+  }
 
   if (registerLink) {
     registerLink.classList.remove("hidden");
@@ -270,28 +314,40 @@ async function updateNavAuthState() {
     loginLink.classList.remove("hidden");
   }
 
-  if (logoutLink) {
-    logoutLink.classList.add("hidden");
+  if (userMenu) {
+    userMenu.classList.add("hidden");
   }
 
-  const { data, error } = await supabaseClient.auth.getSession();
+  const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
 
-  if (!error && data.session) {
-    if (registerLink) {
-      registerLink.classList.add("hidden");
-    }
+  if (sessionError || !sessionData.session) {
+    return;
+  }
 
-    if (loginLink) {
-      loginLink.classList.add("hidden");
-    }
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 
-    if (logoutLink) {
-      logoutLink.classList.remove("hidden");
-    }
+  if (userError || !userData.user) {
+    return;
+  }
+
+  if (registerLink) {
+    registerLink.classList.add("hidden");
+  }
+
+  if (loginLink) {
+    loginLink.classList.add("hidden");
+  }
+
+  if (userMenu) {
+    userMenu.classList.remove("hidden");
+  }
+
+  if (userNameBtn) {
+    userNameBtn.textContent = getDisplayName(userData.user);
   }
 
   if (logoutButton) {
-    logoutButton.addEventListener("click", async function (event) {
+    logoutButton.onclick = async function (event) {
       event.preventDefault();
 
       const { error } = await supabaseClient.auth.signOut();
@@ -299,15 +355,15 @@ async function updateNavAuthState() {
       if (!error) {
         window.location.href = getHomePath();
       }
-    });
+    };
   }
 }
 
 updateNavAuthState();
 
 /* =========================
-   BLOCK LOGIN/REGISTER PAGE
-   WHEN ALREADY LOGGED IN
+   BLOCK LOGIN / REGISTER
+   WHEN LOGGED IN
 ========================= */
 async function checkCurrentSession() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -327,3 +383,45 @@ async function checkCurrentSession() {
 }
 
 checkCurrentSession();
+
+/* =========================
+   ACCOUNT PAGE
+========================= */
+async function loadAccountPage() {
+  const usernameField = document.getElementById("account-username");
+  const fullNameField = document.getElementById("account-full-name");
+  const emailField = document.getElementById("account-email");
+  const phoneField = document.getElementById("account-phone");
+
+  if (!usernameField && !fullNameField && !emailField && !phoneField) {
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    window.location.href = getPagePath("login.html");
+    return;
+  }
+
+  const user = data.user;
+  const meta = user.user_metadata || {};
+
+  if (usernameField) {
+    usernameField.textContent = meta.username || user.email?.split("@")[0] || "Not set";
+  }
+
+  if (fullNameField) {
+    fullNameField.textContent = meta.full_name || "Not set";
+  }
+
+  if (emailField) {
+    emailField.textContent = user.email || "Not set";
+  }
+
+  if (phoneField) {
+    phoneField.textContent = user.phone || "Not set";
+  }
+}
+
+loadAccountPage();
