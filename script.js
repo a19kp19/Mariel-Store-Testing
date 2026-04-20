@@ -17,13 +17,17 @@ function goTo(path, delay = 1500) {
   }, delay);
 }
 
-function isStrongPassword(password) {
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasLowercase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+function getHomePath() {
+  return window.location.pathname.includes("/pages/") ? "../index.html" : "index.html";
+}
 
-  return hasUppercase && hasLowercase && hasNumber && hasSpecial;
+function isStrongPassword(password) {
+  return (
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
 }
 
 function updatePasswordState() {
@@ -36,7 +40,7 @@ function updatePasswordState() {
 
   const password = passwordInput.value;
 
-  if (password === "") {
+  if (!password) {
     passwordInput.style.borderColor = "";
     passwordHint.textContent = "Password should contain uppercase, lowercase, number, and special character.";
     passwordHint.style.color = "";
@@ -81,7 +85,7 @@ if (registerForm) {
     }
 
     if (!isStrongPassword(password)) {
-      document.getElementById("password").style.borderColor = "red";
+      updatePasswordState();
       setText("form-message", "Password is too weak.");
       return;
     }
@@ -111,7 +115,7 @@ if (registerForm) {
 
     if (data.session) {
       setText("form-message", "Registered successfully. Redirecting...");
-      goTo("../index.html");
+      goTo(getHomePath());
     } else {
       setText("form-message", "Registered successfully. Check your email to verify your account.");
     }
@@ -148,7 +152,7 @@ if (loginForm) {
     }
 
     setText("login-message", "Login successful. Redirecting...");
-    goTo("../index.html");
+    goTo(getHomePath());
   });
 }
 
@@ -159,7 +163,8 @@ const googleLoginButton = document.getElementById("google-login");
 
 if (googleLoginButton) {
   googleLoginButton.addEventListener("click", async function () {
-    setText("login-message", "");
+    const messageId = document.getElementById("login-message") ? "login-message" : "form-message";
+    setText(messageId, "");
 
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
@@ -169,13 +174,13 @@ if (googleLoginButton) {
     });
 
     if (error) {
-      setText("login-message", error.message);
+      setText(messageId, error.message);
     }
   });
 }
 
 /* =========================
-   SHOW / HIDE PHONE LOGIN
+   PHONE LOGIN TOGGLE
 ========================= */
 const showPhoneLoginButton = document.getElementById("show-phone-login");
 const phoneLoginBox = document.getElementById("phone-login-box");
@@ -244,12 +249,65 @@ if (verifyPhoneCodeButton) {
     }
 
     setText("phone-message", "Phone login successful. Redirecting...");
-    goTo("../index.html");
+    goTo(getHomePath());
   });
 }
 
 /* =========================
-   CHECK CURRENT SESSION
+   NAV AUTH STATE + LOGOUT
+========================= */
+async function updateNavAuthState() {
+  const registerLink = document.getElementById("register-link");
+  const loginLink = document.getElementById("login-link");
+  const logoutLink = document.getElementById("logout-link");
+  const logoutButton = document.getElementById("logout-btn");
+
+  if (registerLink) {
+    registerLink.classList.remove("hidden");
+  }
+
+  if (loginLink) {
+    loginLink.classList.remove("hidden");
+  }
+
+  if (logoutLink) {
+    logoutLink.classList.add("hidden");
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (!error && data.session) {
+    if (registerLink) {
+      registerLink.classList.add("hidden");
+    }
+
+    if (loginLink) {
+      loginLink.classList.add("hidden");
+    }
+
+    if (logoutLink) {
+      logoutLink.classList.remove("hidden");
+    }
+  }
+
+  if (logoutButton) {
+    logoutButton.addEventListener("click", async function (event) {
+      event.preventDefault();
+
+      const { error } = await supabaseClient.auth.signOut();
+
+      if (!error) {
+        window.location.href = getHomePath();
+      }
+    });
+  }
+}
+
+updateNavAuthState();
+
+/* =========================
+   BLOCK LOGIN/REGISTER PAGE
+   WHEN ALREADY LOGGED IN
 ========================= */
 async function checkCurrentSession() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -269,60 +327,3 @@ async function checkCurrentSession() {
 }
 
 checkCurrentSession();
-
-async function updateNavAuthState() {
-  const registerLink = document.getElementById("register-link");
-  const loginLink = document.getElementById("login-link");
-  const logoutLink = document.getElementById("logout-link");
-  const logoutButton = document.getElementById("logout-btn");
-
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error) {
-    return;
-  }
-
-  if (data.session) {
-    if (registerLink) {
-      registerLink.classList.add("hidden");
-    }
-
-    if (loginLink) {
-      loginLink.classList.add("hidden");
-    }
-
-    if (logoutLink) {
-      logoutLink.classList.remove("hidden");
-    }
-  } else {
-    if (registerLink) {
-      registerLink.classList.remove("hidden");
-    }
-
-    if (loginLink) {
-      loginLink.classList.remove("hidden");
-    }
-
-    if (logoutLink) {
-      logoutLink.classList.add("hidden");
-    }
-  }
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", async function (event) {
-      event.preventDefault();
-
-      const { error } = await supabaseClient.auth.signOut();
-
-      if (!error) {
-        if (window.location.pathname.includes("/pages/")) {
-          window.location.href = "../index.html";
-        } else {
-          window.location.href = "index.html";
-        }
-      }
-    });
-  }
-}
-
-updateNavAuthState();
