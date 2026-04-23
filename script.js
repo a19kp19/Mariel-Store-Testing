@@ -4,7 +4,7 @@
    - Cart (localStorage)
    - Mobile menu, toasts, reveal-on-scroll
    - Product search/filter, wishlist
-   - Supabase auth (kept from original)
+   - Supabase backend
    ========================================================= */
 
 const SUPABASE_URL = "https://iqkjkteojcgnzivhhwqx.supabase.co";
