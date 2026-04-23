@@ -1,10 +1,10 @@
 /* =========================================================
-   Mariel Store — App script
+   Mariel Store
    - Injects shared header & footer
    - Cart (localStorage)
    - Mobile menu, toasts, reveal-on-scroll
    - Product search/filter, wishlist
-   - Supabase auth (kept from original)
+   - Supabase for auth
    ========================================================= */
 
 const SUPABASE_URL = "https://iqkjkteojcgnzivhhwqx.supabase.co";
@@ -530,7 +530,7 @@ async function loadAccount() {
    ========================================================= */
 function wireEvents() {
   document.addEventListener("click", (e) => {
-    const t = e.target.closest("[data-act], [data-id], #open-cart, #close-cart, #scrim, #menu-open, #menu-close, .add-cart, .wish, .chip, #checkout-btn");
+    const t = e.target.closest("[data-act], [data-id], [data-pd], #open-cart, #close-cart, #scrim, #menu-open, #menu-close, .add-cart, .wish, .chip, #checkout-btn");
     if (!t) return;
 
     if (t.id === "open-cart") return openCart();
