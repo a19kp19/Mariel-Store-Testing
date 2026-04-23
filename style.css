@@ -182,21 +182,21 @@ nav .wrap {
 }
 
 .section-dark {
-  padding: 60px 0;
+  padding: 40px 0;
   background: var(--main);
   color: var(--light);
   text-align: center;
 }
 
 .section-dark h2 {
-  font-size: 36px;
+  font-size: 28px;
   color: var(--light);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .section-dark h2 em {
-  color: #f9d4d4;
-  font-style: italic;
+  color: var(--light);
+  font-style: normal;
 }
 
 .section-dark p {
