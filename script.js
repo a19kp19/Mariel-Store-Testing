@@ -254,7 +254,7 @@ const PRODUCTS = [
   { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support." },
   { id: "clock",    name: "Wall Clock",      price: 200,   cat: "accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room." },
   { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready." },
-  { id: "choco",    name: "Snickers, Dairy Milk Bars",price: 350,   cat: "foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box." },
+  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box." },
 ];
 
 const CATEGORIES = [
