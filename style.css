@@ -182,7 +182,7 @@ nav .wrap {
 }
 
 .section-dark {
-  padding: 50px 0;
+  padding: 30px 0;
   background: var(--main);
   color: var(--light);
   text-align: center;
@@ -603,5 +603,9 @@ footer {
 
   .nav-links {
     justify-content: center;
+  }
+
+  .footer-wide {
+    flex: 0 0 auto;
   }
 }
