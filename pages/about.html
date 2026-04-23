@@ -4,148 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About | Mariel Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="../auth.css">
+  <link rel="icon" href="../images/logo.png">
 </head>
-<body>
+<body data-page="about">
 
-  <nav>
-    <div class="wrap">
-      <div class="logo">
-        <img src="../images/logo.png" alt="Mariel Store Logo">
-      </div>
+<div id="site-header"></div>
 
-      <ul class="nav-links">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="about.html" class="active">About</a></li>
-        <li><a href="services.html">Services</a></li>
-        <li><a href="products.html">Products</a></li>
-        <li><a href="contact.html">Contact</a></li>
+<section class="page-header">
+  <div class="container">
+    <h1>About <em>Us</em></h1>
+    <p>The story behind Mariel Store and what we stand for.</p>
+  </div>
+</section>
 
-        <li id="auth-links" class="auth-links">
-          <span id="register-link">
-            <a id="register-nav-link" href="#">Register</a>
-          </span>
-
-          <span class="nav-separator">|</span>
-
-          <span id="login-link">
-            <a id="login-nav-link" href="#">Login</a>
-          </span>
-        </li>
-
-        <li id="user-menu" class="user-menu hidden">
-          <a href="#" id="user-name-btn" class="user-name-btn">Account</a>
-          <ul class="user-dropdown">
-            <li><a id="account-nav-link" href="#">My Account</a></li>
-            <li><a href="#" id="logout-btn">Logout</a></li>
-          </ul>
-        </li>
+<section class="section section-white">
+  <div class="container split reveal">
+    <img src="../images/hero-img.webp" alt="Mariel Store products">
+    <div class="stack">
+      <span class="eyebrow">Our Story</span>
+      <h2>Our story and <em>purpose</em></h2>
+      <p>Mariel Store was founded with one simple belief: every family deserves access to quality products without making shopping hard or expensive.</p>
+      <p>We focus on making online shopping simple, reliable and convenient for customers across the country.</p>
+      <ul>
+        <li>Started as a small local shop in the Philippines</li>
+        <li>Now serves customers nationwide</li>
+        <li>Flexible payment options including installments</li>
+        <li>Focused on customer satisfaction and trust</li>
       </ul>
     </div>
-  </nav>
+  </div>
+</section>
 
-  <section class="page-header">
-    <div class="wrap">
-      <h1>About <em>Us</em></h1>
-      <p>The story behind Mariel Store and what we stand for.</p>
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Our Values</span>
+      <h2>What <em>guides</em> us</h2>
+      <p class="lead">Simple values that help us serve our customers better, every day.</p>
     </div>
-  </section>
-
-  <section class="section-white">
-    <div class="wrap two-col">
-      <div class="col">
-        <img src="../images/hero-img.webp" alt="Mariel Store products">
-      </div>
-
-      <div class="col">
-        <h2>Our Story and <em>Purpose</em></h2>
-        <p>Mariel Store was founded with one simple belief, which is that every family deserves access to quality products without making shopping too hard or too expensive.</p>
-        <p>We focus on making online shopping simple, reliable, and convenient for customers from different places.</p>
-
-        <ul class="story">
-          <li>Started as a small local shop in the Philippines</li>
-          <li>Can now serve more customers nationwide</li>
-          <li>Offers flexible payment options like installments</li>
-          <li>Focused on customer satisfaction and trust</li>
-        </ul>
-      </div>
+    <div class="grid grid-3 reveal">
+      <div class="card"><div class="icon">🤝</div><h3>Honesty</h3><p>Truthful and transparent in every transaction and product detail.</p></div>
+      <div class="card"><div class="icon">⭐</div><h3>Quality</h3><p>We carefully choose products that meet our customers' expectations.</p></div>
+      <div class="card"><div class="icon">💬</div><h3>Customer First</h3><p>We listen and provide helpful service every time.</p></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section">
-    <div class="wrap center">
-      <h2>Our Core <em>Values</em></h2>
-      <p>Everything we do is guided by simple values that help us serve our customers better.</p>
+<section class="cta">
+  <div class="container">
+    <div>
+      <h2>Want to know more?</h2>
+      <p>Reach out anytime for product inquiries and updates.</p>
     </div>
+    <a href="contact.html" class="btn btn-light">Get in Touch</a>
+  </div>
+</section>
 
-    <div class="wrap">
-      <div class="cards">
-        <div class="card">
-          <span>🤝</span>
-          <h3>Honesty</h3>
-          <p>We aim to be truthful and transparent in every transaction and product detail.</p>
-        </div>
+<div id="site-footer"></div>
 
-        <div class="card">
-          <span>⭐</span>
-          <h3>Quality</h3>
-          <p>We carefully choose products that can satisfy the needs of our customers.</p>
-        </div>
-
-        <div class="card">
-          <span>💬</span>
-          <h3>Customer First</h3>
-          <p>We listen to our customers and do our best to provide helpful service every time.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section-dark">
-    <div class="wrap">
-      <h2>Want to Know More <em>About Us?</em></h2>
-      <p>You can contact us anytime for questions, product inquiries, and updates.</p>
-      <a href="contact.html" class="btn-outline">Get in Touch</a>
-    </div>
-  </section>
-
-  <footer>
-    <div class="wrap">
-      <div class="footer-row">
-        <div class="footer-wide">
-          <div class="logo">
-            <img src="../images/logo.png" alt="Mariel Store Logo">
-          </div>
-          <p class="footer-tagline">Your trusted online shop for quality appliances and home products, delivered straight to your door.</p>
-        </div>
-
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="../index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="services.html">Services</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col footer-contact">
-          <h4>Contact</h4>
-          <p><strong>Location:</strong> Philippines</p>
-          <p><strong>Delivery:</strong> Nationwide</p>
-          <p><strong>Payment:</strong> COD / Online / Installment</p>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>© 2026 Mariel Store. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../script.js"></script>
 </body>
 </html>
