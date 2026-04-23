@@ -4,148 +4,65 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Services | Mariel Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="../auth.css">
+  <link rel="icon" href="../images/logo.png">
 </head>
-<body>
+<body data-page="services">
 
-  <nav>
-    <div class="wrap">
-      <div class="logo">
-        <img src="../images/logo.png" alt="Mariel Store Logo">
-      </div>
+<div id="site-header"></div>
 
-      <ul class="nav-links">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="services.html" class="active">Services</a></li>
-        <li><a href="products.html">Products</a></li>
-        <li><a href="contact.html">Contact</a></li>
+<section class="page-header">
+  <div class="container">
+    <h1>Our <em>Services</em></h1>
+    <p>Simple, reliable services that make your shopping easier.</p>
+  </div>
+</section>
 
-        <li id="auth-links" class="auth-links">
-          <span id="register-link">
-            <a id="register-nav-link" href="#">Register</a>
-          </span>
-
-          <span class="nav-separator">|</span>
-
-          <span id="login-link">
-            <a id="login-nav-link" href="#">Login</a>
-          </span>
-        </li>
-
-        <li id="user-menu" class="user-menu hidden">
-          <a href="#" id="user-name-btn" class="user-name-btn">Account</a>
-          <ul class="user-dropdown">
-            <li><a id="account-nav-link" href="#">My Account</a></li>
-            <li><a href="#" id="logout-btn">Logout</a></li>
-          </ul>
-        </li>
-      </ul>
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">What We Offer</span>
+      <h2>Customer-friendly <em>services</em></h2>
+      <p class="lead">From browsing to delivery, we support convenient shopping every step of the way.</p>
     </div>
-  </nav>
-
-  <section class="page-header">
-    <div class="wrap">
-      <h1>Our <em>Services</em></h1>
-      <p>Simple and reliable services to make your shopping experience easier.</p>
+    <div class="grid grid-3 reveal">
+      <div class="card"><div class="icon">🛒</div><h3>Product Ordering</h3><p>Browse available products, choose what you need, and place orders easily.</p></div>
+      <div class="card"><div class="icon">🚚</div><h3>Home Delivery</h3><p>Direct delivery to your door — safe, on-time and tracked.</p></div>
+      <div class="card"><div class="icon">💳</div><h3>Flexible Payments</h3><p>COD, online payment, and installment options to suit your budget.</p></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section">
-    <div class="wrap center">
-      <h2>What We <em>Offer</em></h2>
-      <p>Our store provides customer-friendly services that support convenient shopping from start to finish.</p>
+<section class="section section-white">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">How It Works</span>
+      <h2>Three simple <em>steps</em></h2>
     </div>
-
-    <div class="wrap">
-      <div class="cards">
-        <div class="card">
-          <span>🛒</span>
-          <h3>Product Ordering</h3>
-          <p>Customers can browse available products, choose what they need, and place orders easily.</p>
-        </div>
-
-        <div class="card">
-          <span>🚚</span>
-          <h3>Home Delivery</h3>
-          <p>We provide direct delivery so customers can receive their orders safely and conveniently.</p>
-        </div>
-
-        <div class="card">
-          <span>💳</span>
-          <h3>Flexible Payments</h3>
-          <p>We offer COD, online payment, and installment methods depending on the customer’s preference.</p>
-        </div>
-      </div>
+    <div class="grid grid-3 reveal">
+      <div class="card step"><div class="num">01</div><div class="icon">🔍</div><h3>Browse & Choose</h3><p>Explore items and pick the products that match your needs.</p></div>
+      <div class="card step"><div class="num">02</div><div class="icon">📝</div><h3>Order & Pay</h3><p>Place your order and select your preferred payment method.</p></div>
+      <div class="card step"><div class="num">03</div><div class="icon">📦</div><h3>Delivery</h3><p>We prepare and deliver your order safely to your address.</p></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section-white">
-    <div class="wrap center">
-      <h2>How It <em>Works</em></h2>
-      <p>Ordering from us follows a simple process that helps customers receive their products quickly and safely.</p>
+<section class="cta">
+  <div class="container">
+    <div>
+      <h2>Ready to start shopping?</h2>
+      <p>Browse our products and place your order today.</p>
     </div>
+    <a href="products.html" class="btn btn-light">Shop Now</a>
+  </div>
+</section>
 
-    <div class="wrap">
-      <div class="cards">
-        <div class="card">
-          <span>🔍</span>
-          <h3>Browse & Choose</h3>
-          <p>Explore our available items and choose the products that match your needs.</p>
-        </div>
+<div id="site-footer"></div>
 
-        <div class="card">
-          <span>📝</span>
-          <h3>Order & Payment</h3>
-          <p>Place your order and select the payment method you want to use.</p>
-        </div>
-
-        <div class="card">
-          <span>📦</span>
-          <h3>Delivery</h3>
-          <p>Your order is prepared and delivered safely to your address.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div class="wrap">
-      <div class="footer-row">
-        <div class="footer-wide">
-          <div class="logo">
-            <img src="../images/logo.png" alt="Mariel Store Logo">
-          </div>
-          <p class="footer-tagline">Your trusted online shop for quality appliances and home products, delivered straight to your door.</p>
-        </div>
-
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="../index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="services.html">Services</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col footer-contact">
-          <h4>Contact</h4>
-          <p><strong>Location:</strong> Philippines</p>
-          <p><strong>Delivery:</strong> Nationwide</p>
-          <p><strong>Payment:</strong> COD / Online / Installment</p>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>© 2026 Mariel Store. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../script.js"></script>
 </body>
 </html>
