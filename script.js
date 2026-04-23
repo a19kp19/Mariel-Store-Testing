@@ -4,7 +4,7 @@
    - Cart (localStorage)
    - Mobile menu, toasts, reveal-on-scroll
    - Product search/filter, wishlist
-   - Supabase for auth
+   - Supabase auth (kept from original)
    ========================================================= */
 
 const SUPABASE_URL = "https://iqkjkteojcgnzivhhwqx.supabase.co";
@@ -249,12 +249,12 @@ function toggleWish(id) {
    PRODUCTS DATA
    ========================================================= */
 const PRODUCTS = [
-  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty." },
-  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty." },
-  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support." },
-  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room." },
-  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready." },
-  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box." },
+  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "Gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty.", details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G." },
+  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "Gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty.", details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable." },
+  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "Gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.", details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support." },
+  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "Accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room.", details: "30cm diameter, silent quartz movement, AA battery powered." },
+  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "Foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready.", details: "A box with different kind of chocolates inside. All-time favorite!" },
+  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box.", details: "Classic combination, irresistible taste." },
 ];
 
 const CATEGORIES = [
@@ -267,20 +267,22 @@ const CATEGORIES = [
 
 function productCard(p) {
   const wished = getWish().includes(p.id);
+  const link = `${pagePath("product.html")}?id=${p.id}`;
   return `
     <article class="product">
-      <div class="media">
+      <a class="media" href="${link}">
         ${p.tag ? `<span class="tag">${p.tag}</span>` : ""}
-        <button class="wish ${wished?"on":""}" data-id="${p.id}" aria-label="Wishlist">${wished?"♥":"♡"}</button>
         <img src="${p.img}" alt="${p.name}" loading="lazy">
-      </div>
+      </a>
+      <button class="wish ${wished?"on":""}" data-id="${p.id}" aria-label="Wishlist">${wished?"♥":"♡"}</button>
       <div class="info">
         <span class="cat-label">${p.cat}</span>
-        <h3>${p.name}</h3>
+        <h3><a href="${link}">${p.name}</a></h3>
         <p class="muted" style="font-size:.85rem">${p.desc}</p>
         <div class="price">${peso(p.price)}</div>
       </div>
       <div class="actions">
+        <a class="btn btn-outline" href="${link}">View</a>
         <button class="btn add-cart" data-id="${p.id}">Add to Cart</button>
       </div>
     </article>
@@ -325,6 +327,75 @@ function renderFeatured() {
   const grid = $("#featured-grid");
   if (!grid) return;
   grid.innerHTML = PRODUCTS.slice(0, 4).map(productCard).join("");
+}
+
+/* =========================================================
+   PRODUCT DETAIL PAGE
+   ========================================================= */
+function renderProductDetail() {
+  const host = $("#product-detail");
+  if (!host) return;
+
+  const id = new URLSearchParams(location.search).get("id");
+  const p = PRODUCTS.find(x => x.id === id);
+
+  if (!p) {
+    host.innerHTML = `
+      <div class="empty">
+        <div class="icon">😕</div>
+        <h2>Product not found</h2>
+        <p class="muted">The item you're looking for doesn't exist.</p>
+        <a class="btn" href="${pagePath("products.html")}">Back to Products</a>
+      </div>`;
+    const r = $("#related-grid"); if (r) r.innerHTML = "";
+    return;
+  }
+
+  document.title = `${p.name} | Mariel Store`;
+  const wished = getWish().includes(p.id);
+
+  host.innerHTML = `
+    <nav class="crumbs">
+      <a href="${home()}">Home</a> / 
+      <a href="${pagePath("products.html")}">Products</a> / 
+      <a href="${pagePath("products.html")}?cat=${p.cat}">${p.cat}</a> / 
+      <span>${p.name}</span>
+    </nav>
+    <div class="product-detail">
+      <div class="pd-media">
+        ${p.tag ? `<span class="tag">${p.tag}</span>` : ""}
+        <img src="${p.img}" alt="${p.name}">
+      </div>
+      <div class="pd-info">
+        <span class="cat-label">${p.cat}</span>
+        <h1>${p.name}</h1>
+        <div class="pd-price">${peso(p.price)}</div>
+        <p class="pd-desc">${p.desc}</p>
+        <ul class="pd-meta">
+          <li><strong>Availability:</strong> In stock</li>
+          <li><strong>Category:</strong> ${p.cat}</li>
+          <li><strong>Details:</strong> ${p.details || "—"}</li>
+        </ul>
+        <div class="pd-qty">
+          <label>Quantity</label>
+          <div class="qty-box">
+            <button data-pd="dec" aria-label="Decrease">−</button>
+            <input id="pd-qty-input" type="number" min="1" value="1">
+            <button data-pd="inc" aria-label="Increase">+</button>
+          </div>
+        </div>
+        <div class="pd-actions">
+          <button class="btn add-cart" data-id="${p.id}" data-qty-from="#pd-qty-input">Add to Cart</button>
+          <button class="wish btn btn-outline ${wished?"on":""}" data-id="${p.id}">${wished?"♥ Wishlisted":"♡ Wishlist"}</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
+  const r = $("#related-grid");
+  if (r) r.innerHTML = (related.length ? related : PRODUCTS.filter(x => x.id !== p.id).slice(0, 4))
+    .map(productCard).join("");
 }
 
 /* =========================================================
@@ -469,7 +540,22 @@ function wireEvents() {
 
     if (t.classList.contains("add-cart")) {
       const p = PRODUCTS.find(x => x.id === t.dataset.id);
-      if (p) addToCart({ id: p.id, name: p.name, price: p.price, img: p.img });
+      if (!p) return;
+      let qty = 1;
+      if (t.dataset.qtyFrom) {
+        const inp = document.querySelector(t.dataset.qtyFrom);
+        qty = Math.max(1, parseInt(inp?.value, 10) || 1);
+      }
+      for (let i = 0; i < qty; i++) {
+        addToCart({ id: p.id, name: p.name, price: p.price, img: p.img });
+      }
+      return;
+    }
+    if (t.dataset.pd === "inc" || t.dataset.pd === "dec") {
+      const inp = $("#pd-qty-input");
+      if (!inp) return;
+      const v = Math.max(1, (parseInt(inp.value, 10) || 1) + (t.dataset.pd === "inc" ? 1 : -1));
+      inp.value = v;
       return;
     }
     if (t.classList.contains("wish")) return toggleWish(t.dataset.id);
@@ -520,6 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCart();
   renderFeatured();
   renderProducts();
+  renderProductDetail();
   setupReveal();
   wireEvents();
   bindRegister();
