@@ -1,6 +1,12 @@
 /* =========================================================
    Mariel Store — Design System
    ========================================================= */
+/* Custom Font */
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("./fonts/pjs-400.ttf") format("truetype"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("./fonts/pjs-500.ttf") format("truetype"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("./fonts/pjs-600.ttf") format("truetype"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("./fonts/pjs-700.ttf") format("truetype"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 800; font-display: swap; src: url("./fonts/pjs-800.ttf") format("truetype"); }
 
 :root {
   --brand: #b91c1c;
