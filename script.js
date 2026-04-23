@@ -472,9 +472,22 @@ function wireEvents() {
     }
     if (t.id === "checkout-btn") {
       if (getCart().length === 0) return toast("Your cart is empty", "bad");
-      setCart([]);
-      closeCart();
-      toast("Order placed! We'll contact you soon.", "ok");
+            (async () => {
+        let loggedIn = false;
+        if (sb) {
+          const { data } = await sb.auth.getSession();
+          loggedIn = !!data.session;
+        }
+        if (!loggedIn) {
+          toast("Please create an account to checkout", "bad");
+          closeCart();
+          setTimeout(() => location.href = pagePath("register.html"), 800);
+          return;
+        }
+        setCart([]);
+        closeCart();
+        toast("Order placed! We'll contact you soon.", "ok");
+      })();
       return;
     }
 
