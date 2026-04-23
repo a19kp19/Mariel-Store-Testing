@@ -4,7 +4,7 @@
    - Cart (localStorage)
    - Mobile menu, toasts, reveal-on-scroll
    - Product search/filter, wishlist
-   - Supabase backend
+   - Supabase for auth
    ========================================================= */
 
 const SUPABASE_URL = "https://iqkjkteojcgnzivhhwqx.supabase.co";
@@ -249,12 +249,12 @@ function toggleWish(id) {
    PRODUCTS DATA
    ========================================================= */
 const PRODUCTS = [
-  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty." },
-  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty." },
-  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support." },
-  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room." },
-  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready." },
-  { id: "choco",    name: "Snickers, Dairy Milk Bars",price: 350,   cat: "foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box." },
+  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "gadgets",     img: base + "images/products/Iphone14.jpg",   tag: "Bestseller", desc: "128GB, factory unlocked, 1-year warranty." },
+  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",           desc: "Reliable performance and great cameras." },
+  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",        desc: "Lightweight, fast, perfect for work and play." },
+  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "accessories", img: base + "images/products/Clock.jpg",      tag: "",           desc: "Affordable, modern, durable for any room." },
+  { id: "snickers", name: "Snickers Bar",    price: 20,    cat: "foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",        desc: "Classic chocolate bar, satisfying snack." },
+  { id: "choco",    name: "Mixed Chocolates",price: 350,   cat: "foods",       img: base + "images/products/Chocolates.jpg", tag: "",           desc: "Assorted gourmet chocolates, gift-ready." },
 ];
 
 const CATEGORIES = [
