@@ -1,10 +1,10 @@
 /* =========================================================
    Mariel Store — App script
-     Features:
+   - Injects shared header & footer
    - Cart (localStorage)
    - Mobile menu, toasts, reveal-on-scroll
    - Product search/filter, wishlist
-   - Supabase for auth
+   - Supabase auth (kept from original)
    ========================================================= */
 
 const SUPABASE_URL = "https://iqkjkteojcgnzivhhwqx.supabase.co";
@@ -412,6 +412,14 @@ function bindRegister() {
     setMsg("form-message", data.session ? "Registered. Redirecting..." : "Check your email to verify.", true);
     if (data.session) setTimeout(() => location.href = home(), 1200);
   });
+
+  $("#google-register")?.addEventListener("click", async () => {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: location.origin + "/pages/login.html" }
+    });
+    if (error) setMsg("form-message", error.message);
+  });
 }
 
 function bindLogin() {
@@ -472,7 +480,7 @@ function wireEvents() {
     }
     if (t.id === "checkout-btn") {
       if (getCart().length === 0) return toast("Your cart is empty", "bad");
-            (async () => {
+      (async () => {
         let loggedIn = false;
         if (sb) {
           const { data } = await sb.auth.getSession();
