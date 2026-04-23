@@ -107,7 +107,7 @@ function buildFooter() {
             <ul>
               <li><a href="${pagePath("products.html")}">All Products</a></li>
               <li><a href="${pagePath("products.html")}?cat=gadgets">Gadgets</a></li>
-              <li><a href="${pagePath("products.html")}?cat=furnitures">Furniture</a></li>
+              <li><a href="${pagePath("products.html")}?cat=furnitures">Furnitures</a></li>
               <li><a href="${pagePath("products.html")}?cat=foods">Foods</a></li>
             </ul>
           </div>
@@ -176,15 +176,25 @@ const setCart = (c) => { localStorage.setItem(CART_KEY, JSON.stringify(c)); rend
 function addToCart(item) {
   const cart = getCart();
   const found = cart.find(i => i.id === item.id);
+  const prod = (typeof PRODUCTS !== "undefined") ? PRODUCTS.find(p => p.id === item.id) : null;
+  const cap = prod && typeof prod.stock === "number" ? prod.stock : Infinity;
+  const current = found ? found.qty : 0;
+  if (current >= cap) { toast(`Only ${cap} ${item.name} available`, "bad"); return false; }
   if (found) found.qty += 1;
   else cart.push({ ...item, qty: 1 });
   setCart(cart);
   toast(`${item.name} added to cart`, "ok");
+  return true;
 }
 function changeQty(id, delta) {
   const cart = getCart();
   const it = cart.find(i => i.id === id);
   if (!it) return;
+  if (delta > 0) {
+    const prod = (typeof PRODUCTS !== "undefined") ? PRODUCTS.find(p => p.id === id) : null;
+    const cap = prod && typeof prod.stock === "number" ? prod.stock : Infinity;
+    if (it.qty >= cap) { toast(`Only ${cap} available`, "bad"); return; }
+  }
   it.qty += delta;
   if (it.qty <= 0) return setCart(cart.filter(i => i.id !== id));
   setCart(cart);
@@ -249,18 +259,19 @@ function toggleWish(id) {
    PRODUCTS DATA
    ========================================================= */
 const PRODUCTS = [
-  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "Gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty.", details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G." },
-  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "Gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty.", details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable." },
-  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "Gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.", details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support." },
-  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "Accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room.", details: "30cm diameter, silent quartz movement, AA battery powered." },
-  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "Foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready.", details: "A box with different kind of chocolates inside. All-time favorite!" },
-  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box.", details: "Classic combination, irresistible taste." },
+  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "Gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty.", details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G.", stock: "3" },
+  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "Gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty.", details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable.", stock: "7" },
+  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "Gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.", details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support.", stock: "5" },
+  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "Accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room.", details: "30cm diameter, silent quartz movement, AA battery powered.", stock: "1" },
+  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "Foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready.", details: "A box with different kind of chocolates inside. All-time favorite!", stock: "13" },
+  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box.", details: "Classic combination, irresistible taste.", stock: "22" },
+  { id: "chair1",   name: "Set of Lounge Chairs",     price: 3000, cat: "Furnitures",  img: base + "images/products/chair1.jpg",      tag: "New", desc: "Comfortable, stylish, perfect for any living room.", details: "3-seater, high-density foam cushions, durable fabric upholstery.", stock: "1" },
 ];
 
 const CATEGORIES = [
   { key: "all",         label: "All" },
   { key: "gadgets",     label: "Gadgets" },
-  { key: "furnitures",  label: "Furniture" },
+  { key: "furnitures",  label: "Furnitures" },
   { key: "accessories", label: "Accessories" },
   { key: "foods",       label: "Foods" },
 ];
@@ -372,20 +383,20 @@ function renderProductDetail() {
         <div class="pd-price">${peso(p.price)}</div>
         <p class="pd-desc">${p.desc}</p>
         <ul class="pd-meta">
-          <li><strong>Availability:</strong> In stock</li>
+          <li><strong>Availability:</strong>${(() => { const inCart = (getCart().find(c => c.id === p.id)?.qty) || 0; const left = Math.max(0, (p.stock ?? 0) - inCart); return left > 0 ? `${left} / ${p.stock} in stock` : `Out of stock (0 / ${p.stock})`; })()}</li>
           <li><strong>Category:</strong> ${p.cat}</li>
           <li><strong>Details:</strong> ${p.details || "—"}</li>
         </ul>
         <div class="pd-qty">
           <label>Quantity</label>
           <div class="qty-box">
-            <button data-pd="dec" aria-label="Decrease">−</button>
-            <input id="pd-qty-input" type="number" min="1" value="1">
-            <button data-pd="inc" aria-label="Increase">+</button>
+            <button data-pd="dec" aria-label="Decrease" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>−</button>
+            <input id="pd-qty-input" type="number" min="1" max="${Math.max(1, ((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)))}" value="1" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>
+            <button data-pd="inc" aria-label="Increase" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>+</button>
           </div>
         </div>
         <div class="pd-actions">
-          <button class="btn add-cart" data-id="${p.id}" data-qty-from="#pd-qty-input">Add to Cart</button>
+          <button class="btn add-cart" data-id="${p.id}" data-qty-from="#pd-qty-input" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "Out of Stock" : "Add to Cart"}</button>
           <button class="wish btn btn-outline ${wished?"on":""}" data-id="${p.id}">${wished?"♥ Wishlisted":"♡ Wishlist"}</button>
         </div>
       </div>
@@ -547,14 +558,17 @@ function wireEvents() {
         qty = Math.max(1, parseInt(inp?.value, 10) || 1);
       }
       for (let i = 0; i < qty; i++) {
-        addToCart({ id: p.id, name: p.name, price: p.price, img: p.img });
+       if (!addToCart({ id: p.id, name: p.name, price: p.price, img: p.img })) break;
       }
       return;
     }
     if (t.dataset.pd === "inc" || t.dataset.pd === "dec") {
       const inp = $("#pd-qty-input");
       if (!inp) return;
-      const v = Math.max(1, (parseInt(inp.value, 10) || 1) + (t.dataset.pd === "inc" ? 1 : -1));
+      const max = parseInt(inp.max, 10) || Infinity;
+      let v = (parseInt(inp.value, 10) || 1) + (t.dataset.pd === "inc" ? 1 : -1);
+      v = Math.max(1, Math.min(max, v));
+      if (t.dataset.pd === "inc" && v === parseInt(inp.value, 10)) toast(`Only ${max} available`, "bad");
       inp.value = v;
       return;
     }
