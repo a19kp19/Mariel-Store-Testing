@@ -15,12 +15,20 @@
         <img src="../images/logo.png" alt="Mariel Store Logo">
       </div>
 
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="services.html">Services</a></li>
         <li><a href="products.html">Products</a></li>
         <li><a href="contact.html">Contact</a></li>
+
+        <li>
+          <a href="products.html" class="cart-btn" id="nav-cart" aria-label="Cart">
+            🛒<span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </li>
 
         <li id="auth-links" class="auth-links">
           <span id="register-link">
@@ -47,7 +55,7 @@
 
   <section class="page-header">
     <div class="wrap">
-      <h1>Create an <em>Account</em></h1>
+      <h1>Create an Account</h1>
       <p>Register to start shopping with Mariel Store.</p>
     </div>
   </section>
@@ -55,7 +63,7 @@
   <section class="section-white">
     <div class="wrap">
       <div class="auth-form">
-        <h2>Create <em>Account</em></h2>
+        <h2>Create Account</h2>
 
         <form id="register-form">
           <div class="form-group">
@@ -138,6 +146,7 @@
     </div>
   </section>
 
+  <button id="back-top" aria-label="Back to top">↑</button>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../script.js"></script>
 </body>

@@ -15,12 +15,20 @@
         <img src="../images/logo.png" alt="Mariel Store Logo">
       </div>
 
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="services.html" class="active">Services</a></li>
         <li><a href="products.html">Products</a></li>
         <li><a href="contact.html">Contact</a></li>
+
+        <li>
+          <a href="products.html" class="cart-btn" id="nav-cart" aria-label="Cart">
+            🛒<span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </li>
 
         <li id="auth-links" class="auth-links">
           <span id="register-link">
@@ -47,14 +55,14 @@
 
   <section class="page-header">
     <div class="wrap">
-      <h1>Our <em>Services</em></h1>
+      <h1>Our Services</h1>
       <p>Simple and reliable services to make your shopping experience easier.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap center">
-      <h2>What We <em>Offer</em></h2>
+      <h2>What We Offer</h2>
       <p>Our store provides customer-friendly services that support convenient shopping from start to finish.</p>
     </div>
 
@@ -83,7 +91,7 @@
 
   <section class="section-white">
     <div class="wrap center">
-      <h2>How It <em>Works</em></h2>
+      <h2>How It Works</h2>
       <p>Ordering from us follows a simple process that helps customers receive their products quickly and safely.</p>
     </div>
 
@@ -145,6 +153,7 @@
     </div>
   </footer>
 
+  <button id="back-top" aria-label="Back to top">↑</button>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../script.js"></script>
 </body>

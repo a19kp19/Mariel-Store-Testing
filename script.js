@@ -418,3 +418,127 @@ async function loadAccountPage() {
 }
 
 loadAccountPage();
+
+/* =========================
+   HAMBURGER MENU
+========================= */
+const navToggle = document.querySelector(".nav-toggle");
+const navLinksList = document.querySelector(".nav-links");
+
+if (navToggle && navLinksList) {
+  navToggle.addEventListener("click", function () {
+    const isOpen = navLinksList.classList.toggle("open");
+    navToggle.textContent = isOpen ? "✕" : "☰";
+    navToggle.setAttribute("aria-expanded", isOpen);
+  });
+
+  navLinksList.querySelectorAll("a").forEach(function (link) {
+    link.addEventListener("click", function () {
+      navLinksList.classList.remove("open");
+      navToggle.textContent = "☰";
+      navToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+}
+
+/* =========================
+   STICKY NAV SHADOW
+========================= */
+const navEl = document.querySelector("nav");
+if (navEl) {
+  window.addEventListener("scroll", function () {
+    navEl.classList.toggle("scrolled", window.scrollY > 10);
+  }, { passive: true });
+}
+
+/* =========================
+   BACK TO TOP
+========================= */
+const backTopBtn = document.getElementById("back-top");
+if (backTopBtn) {
+  window.addEventListener("scroll", function () {
+    backTopBtn.classList.toggle("visible", window.scrollY > 320);
+  }, { passive: true });
+
+  backTopBtn.addEventListener("click", function () {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+/* =========================
+   TOAST NOTIFICATION
+========================= */
+function showToast(message, duration) {
+  duration = duration || 2800;
+  let toast = document.querySelector(".toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function () {
+    toast.classList.remove("show");
+  }, duration);
+}
+
+/* =========================
+   CART  (localStorage)
+========================= */
+function getCart() {
+  try {
+    return JSON.parse(localStorage.getItem("ms_cart")) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCart(cart) {
+  localStorage.setItem("ms_cart", JSON.stringify(cart));
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const cart = getCart();
+  const total = cart.reduce(function (sum, item) { return sum + item.qty; }, 0);
+  document.querySelectorAll(".cart-badge").forEach(function (el) {
+    el.textContent = total;
+    el.style.display = total === 0 ? "none" : "flex";
+  });
+}
+
+function addToCart(id, name, price) {
+  const cart = getCart();
+  const existing = cart.find(function (item) { return item.id === id; });
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ id: id, name: name, price: price, qty: 1 });
+  }
+  saveCart(cart);
+  showToast("\uD83D\uDED2 \"" + name + "\" added to cart");
+}
+
+document.querySelectorAll(".add-to-cart").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    addToCart(btn.dataset.id, btn.dataset.name, btn.dataset.price);
+  });
+});
+
+updateCartBadge();
+
+/* =========================
+   PRODUCT SEARCH / FILTER
+========================= */
+const productSearch = document.getElementById("product-search");
+if (productSearch) {
+  productSearch.addEventListener("input", function () {
+    const query = productSearch.value.toLowerCase().trim();
+    document.querySelectorAll(".product").forEach(function (card) {
+      const title = (card.querySelector("h3") || {}).textContent || "";
+      card.style.display = (!query || title.toLowerCase().includes(query)) ? "" : "none";
+    });
+  });
+}

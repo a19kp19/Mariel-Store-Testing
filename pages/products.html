@@ -15,12 +15,20 @@
         <img src="../images/logo.png" alt="Mariel Store Logo">
       </div>
 
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="services.html">Services</a></li>
         <li><a href="products.html" class="active">Products</a></li>
         <li><a href="contact.html">Contact</a></li>
+
+        <li>
+          <a href="products.html" class="cart-btn" id="nav-cart" aria-label="Cart">
+            🛒<span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </li>
 
         <li id="auth-links" class="auth-links">
           <span id="register-link">
@@ -47,14 +55,14 @@
 
   <section class="page-header">
     <div class="wrap">
-      <h1>Our <em>Products</em></h1>
+      <h1>Our Products</h1>
       <p>Browse our collection of different products for various needs and preferences.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap center">
-      <h2>Product <em>Categories</em></h2>
+      <h2>Product Categories</h2>
     </div>
 
     <div class="wrap">
@@ -69,39 +77,52 @@
 
   <section class="section-white">
     <div class="wrap center">
-      <h2>Featured <em>Products</em></h2>
+      <h2>Featured Products</h2>
       <p>Here are some of the items currently available in our store.</p>
     </div>
 
     <div class="wrap">
+      <div class="search-bar">
+        <input type="text" id="product-search" placeholder="Search products...">
+        <button type="button" aria-label="Search">🔍</button>
+      </div>
       <div class="products">
-        <div class="product">
+        <div class="product" data-name="chocolates">
           <img src="../images/products/Snickers.jpg" alt="Snickers chocolates">
           <div class="product-info">
             <h3>Chocolates</h3>
             <p>Delicious and satisfying chocolate product.</p>
-            <strong>₱20.00</strong>
-            <a href="contact.html" class="btn">Buy Now</a>
+            <span class="price">₱20.00</span>
+            <div class="product-actions">
+              <a href="contact.html" class="btn btn-sm">Buy Now</a>
+              <button class="btn-outline btn-sm add-to-cart" data-id="1" data-name="Chocolates" data-price="20">Add to Cart</button>
+            </div>
           </div>
         </div>
 
-        <div class="product">
+        <div class="product" data-name="wall clock">
           <img src="../images/products/Clock.jpg" alt="Wall clock">
           <div class="product-info">
             <h3>Wall Clock</h3>
             <p>Affordable and durable clock for home use.</p>
-            <strong>₱200.00</strong>
-            <a href="contact.html" class="btn">Buy Now</a>
+            <span class="price">₱200.00</span>
+            <div class="product-actions">
+              <a href="contact.html" class="btn btn-sm">Buy Now</a>
+              <button class="btn-outline btn-sm add-to-cart" data-id="2" data-name="Wall Clock" data-price="200">Add to Cart</button>
+            </div>
           </div>
         </div>
 
-        <div class="product">
+        <div class="product" data-name="iphone 14 pro">
           <img src="../images/products/Iphone14.jpg" alt="iPhone 14 Pro">
           <div class="product-info">
             <h3>iPhone 14 Pro</h3>
             <p>128GB storage with good features and warranty.</p>
-            <strong>₱50,000.00</strong>
-            <a href="contact.html" class="btn">Buy Now</a>
+            <span class="price">₱50,000.00</span>
+            <div class="product-actions">
+              <a href="contact.html" class="btn btn-sm">Buy Now</a>
+              <button class="btn-outline btn-sm add-to-cart" data-id="3" data-name="iPhone 14 Pro" data-price="50000">Add to Cart</button>
+            </div>
           </div>
         </div>
       </div>
@@ -143,6 +164,7 @@
     </div>
   </footer>
 
+  <button id="back-top" aria-label="Back to top">↑</button>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../script.js"></script>
 </body>

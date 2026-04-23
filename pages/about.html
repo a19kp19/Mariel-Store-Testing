@@ -15,12 +15,20 @@
         <img src="../images/logo.png" alt="Mariel Store Logo">
       </div>
 
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
         <li><a href="about.html" class="active">About</a></li>
         <li><a href="services.html">Services</a></li>
         <li><a href="products.html">Products</a></li>
         <li><a href="contact.html">Contact</a></li>
+
+        <li>
+          <a href="products.html" class="cart-btn" id="nav-cart" aria-label="Cart">
+            🛒<span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </li>
 
         <li id="auth-links" class="auth-links">
           <span id="register-link">
@@ -47,7 +55,7 @@
 
   <section class="page-header">
     <div class="wrap">
-      <h1>About <em>Us</em></h1>
+      <h1>About Us</h1>
       <p>The story behind Mariel Store and what we stand for.</p>
     </div>
   </section>
@@ -59,7 +67,7 @@
       </div>
 
       <div class="col">
-        <h2>Our Story and <em>Purpose</em></h2>
+        <h2>Our Story and Purpose</h2>
         <p>Mariel Store was founded with one simple belief, which is that every family deserves access to quality products without making shopping too hard or too expensive.</p>
         <p>We focus on making online shopping simple, reliable, and convenient for customers from different places.</p>
 
@@ -75,7 +83,7 @@
 
   <section class="section">
     <div class="wrap center">
-      <h2>Our Core <em>Values</em></h2>
+      <h2>Our Core Values</h2>
       <p>Everything we do is guided by simple values that help us serve our customers better.</p>
     </div>
 
@@ -104,7 +112,7 @@
 
   <section class="section-dark">
     <div class="wrap">
-      <h2>Want to Know More <em>About Us?</em></h2>
+      <h2>Want to Know More About Us?</h2>
       <p>You can contact us anytime for questions, product inquiries, and updates.</p>
       <a href="contact.html" class="btn-outline">Get in Touch</a>
     </div>
@@ -145,6 +153,7 @@
     </div>
   </footer>
 
+  <button id="back-top" aria-label="Back to top">↑</button>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../script.js"></script>
 </body>

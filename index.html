@@ -15,12 +15,20 @@
         <img src="images/logo.png" alt="Mariel Store Logo">
       </div>
 
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+
       <ul class="nav-links">
         <li><a href="index.html" class="active">Home</a></li>
         <li><a href="pages/about.html">About</a></li>
         <li><a href="pages/services.html">Services</a></li>
         <li><a href="pages/products.html">Products</a></li>
         <li><a href="pages/contact.html">Contact</a></li>
+
+        <li>
+          <a href="pages/products.html" class="cart-btn" id="nav-cart" aria-label="Cart">
+            🛒<span class="cart-badge" id="cart-count">0</span>
+          </a>
+        </li>
 
         <li id="auth-links" class="auth-links">
           <span id="register-link">
@@ -48,7 +56,7 @@
   <section class="hero hero-home">
     <div class="wrap center">
       <small>✦ Affordable and Reliable Shopping</small>
-      <h1>Your Trusted <em>Online Store</em></h1>
+      <h1>Your Trusted Online Store</h1>
       <p>Mariel Store offers appliances, gadgets, accessories, and home products with convenient delivery and flexible payment options.</p>
 
       <div class="hero-btns">
@@ -60,7 +68,7 @@
 
   <section class="section">
     <div class="wrap center">
-      <h2>Why Choose <em>Mariel Store</em></h2>
+      <h2>Why Choose Mariel Store</h2>
       <p>We make online shopping easier by offering quality products, helpful services, and flexible payment methods for every customer.</p>
     </div>
 
@@ -94,7 +102,7 @@
       </div>
 
       <div class="col">
-        <h2>A Shop Built on <em>Passion</em></h2>
+        <h2>A Shop Built on Passion</h2>
         <p>Mariel Store started with one simple goal, which is to provide quality products for customers without making shopping difficult and expensive.</p>
         <p>We continue to grow by serving customers with honesty, reliability, and accessible payment methods.</p>
         <a href="pages/about.html" class="btn">Read More</a>
@@ -104,7 +112,7 @@
 
   <section class="section-dark">
     <div class="wrap">
-      <h2>Ready to Order <em>Today?</em></h2>
+      <h2>Ready to Order Today?</h2>
       <p>Explore our products and message us for inquiries, orders, and delivery details.</p>
       <a href="pages/contact.html" class="btn-outline">Contact Us</a>
     </div>
@@ -145,6 +153,7 @@
     </div>
   </footer>
 
+  <button id="back-top" aria-label="Back to top">↑</button>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
