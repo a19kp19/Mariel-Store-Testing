@@ -4,146 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Products | Mariel Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="../auth.css">
+  <link rel="icon" href="../images/logo.png">
 </head>
-<body>
+<body data-page="products">
 
-  <nav>
-    <div class="wrap">
-      <div class="logo">
-        <img src="../images/logo.png" alt="Mariel Store Logo">
-      </div>
+<div id="site-header"></div>
 
-      <ul class="nav-links">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="services.html">Services</a></li>
-        <li><a href="products.html" class="active">Products</a></li>
-        <li><a href="contact.html">Contact</a></li>
+<section class="page-header">
+  <div class="container">
+    <h1>Our <em>Products</em></h1>
+    <p>Browse our collection of quality items for every need.</p>
+  </div>
+</section>
 
-        <li id="auth-links" class="auth-links">
-          <span id="register-link">
-            <a id="register-nav-link" href="#">Register</a>
-          </span>
-
-          <span class="nav-separator">|</span>
-
-          <span id="login-link">
-            <a id="login-nav-link" href="#">Login</a>
-          </span>
-        </li>
-
-        <li id="user-menu" class="user-menu hidden">
-          <a href="#" id="user-name-btn" class="user-name-btn">Account</a>
-          <ul class="user-dropdown">
-            <li><a id="account-nav-link" href="#">My Account</a></li>
-            <li><a href="#" id="logout-btn">Logout</a></li>
-          </ul>
-        </li>
-      </ul>
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Shop by Category</span>
+      <h2>Explore <em>categories</em></h2>
     </div>
-  </nav>
-
-  <section class="page-header">
-    <div class="wrap">
-      <h1>Our <em>Products</em></h1>
-      <p>Browse our collection of different products for various needs and preferences.</p>
+    <div class="cats reveal">
+      <a class="cat" href="?cat=furnitures"><img src="../images/products/furniture.jpg" alt=""><span>Furniture</span></a>
+      <a class="cat" href="?cat=gadgets"><img src="../images/products/gadgets.jpg" alt=""><span>Gadgets</span></a>
+      <a class="cat" href="?cat=accessories"><img src="../images/products/accessories.jpg" alt=""><span>Accessories</span></a>
+      <a class="cat" href="?cat=foods"><img src="../images/products/foods.jpg" alt=""><span>Foods</span></a>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section">
-    <div class="wrap center">
-      <h2>Product <em>Categories</em></h2>
+<section class="section section-white">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">All Items</span>
+      <h2>Featured <em>products</em></h2>
+      <p class="lead">Search, filter and add to cart — checkout in seconds.</p>
     </div>
+    <div class="toolbar" id="products-toolbar"></div>
+    <div class="products" id="products-grid"></div>
+  </div>
+</section>
 
-    <div class="wrap">
-      <div class="product-cats">
-        <div class="cat furnitures"><span>Furnitures</span></div>
-        <div class="cat gadgets"><span>Gadgets</span></div>
-        <div class="cat accessories"><span>Accessories</span></div>
-        <div class="cat foods"><span>Foods</span></div>
-      </div>
-    </div>
-  </section>
+<div id="site-footer"></div>
 
-  <section class="section-white">
-    <div class="wrap center">
-      <h2>Featured <em>Products</em></h2>
-      <p>Here are some of the items currently available in our store.</p>
-    </div>
-
-    <div class="wrap">
-      <div class="products">
-        <div class="product">
-          <img src="../images/products/Snickers.jpg" alt="Snickers chocolates">
-          <div class="product-info">
-            <h3>Chocolates</h3>
-            <p>Delicious and satisfying chocolate product.</p>
-            <strong>₱20.00</strong>
-            <a href="contact.html" class="btn">Buy Now</a>
-          </div>
-        </div>
-
-        <div class="product">
-          <img src="../images/products/Clock.jpg" alt="Wall clock">
-          <div class="product-info">
-            <h3>Wall Clock</h3>
-            <p>Affordable and durable clock for home use.</p>
-            <strong>₱200.00</strong>
-            <a href="contact.html" class="btn">Buy Now</a>
-          </div>
-        </div>
-
-        <div class="product">
-          <img src="../images/products/Iphone14.jpg" alt="iPhone 14 Pro">
-          <div class="product-info">
-            <h3>iPhone 14 Pro</h3>
-            <p>128GB storage with good features and warranty.</p>
-            <strong>₱50,000.00</strong>
-            <a href="contact.html" class="btn">Buy Now</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div class="wrap">
-      <div class="footer-row">
-        <div class="footer-wide">
-          <div class="logo">
-            <img src="../images/logo.png" alt="Mariel Store Logo">
-          </div>
-          <p class="footer-tagline">Your trusted online shop for quality appliances and home products, delivered straight to your door.</p>
-        </div>
-
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="../index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="services.html">Services</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col footer-contact">
-          <h4>Contact</h4>
-          <p><strong>Location:</strong> Philippines</p>
-          <p><strong>Delivery:</strong> Nationwide</p>
-          <p><strong>Payment:</strong> COD / Online / Installment</p>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>© 2026 Mariel Store. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../script.js"></script>
 </body>
 </html>
