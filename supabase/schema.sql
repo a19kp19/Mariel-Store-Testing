@@ -89,3 +89,163 @@ on conflict (id) do update set
   details = excluded.details,
   stock = excluded.stock,
   sort_order = excluded.sort_order;
+
+-- =========================================================
+-- ORDERS & ORDER ITEMS
+-- =========================================================
+
+create table if not exists public.orders (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  status          text not null default 'pending'
+                  check (status in ('pending','packed','shipped','delivered','cancelled')),
+  subtotal        numeric(12,2) not null check (subtotal >= 0),
+  shipping_fee   numeric(12,2) not null default 0 check (shipping_fee >= 0),
+  total           numeric(12,2) not null check (total >= 0),
+  payment_method  text not null check (payment_method in ('cod','online','installment')),
+  full_name       text not null,
+  phone           text not null,
+  email           text,
+  address_line    text not null,
+  city            text not null,
+  province        text not null,
+  region          text not null,
+  postal_code     text,
+  notes           text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+create index if not exists orders_user_idx on public.orders (user_id, created_at desc);
+
+drop trigger if exists orders_set_updated_at on public.orders;
+create trigger orders_set_updated_at
+  before update on public.orders
+  for each row execute function public.set_updated_at();
+
+create table if not exists public.order_items (
+  id          uuid primary key default gen_random_uuid(),
+  order_id    uuid not null references public.orders(id) on delete cascade,
+  product_id  text,
+  name        text not null,
+  img         text,
+  unit_price  numeric(12,2) not null check (unit_price >= 0),
+  qty         integer not null check (qty > 0),
+  line_total  numeric(12,2) generated always as (unit_price * qty) stored
+);
+
+create index if not exists order_items_order_idx on public.order_items (order_id);
+
+-- ---------- Stock decrement + validation (runs on insert) ----------
+create or replace function public.process_order_item() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  current_stock integer;
+begin
+  if new.product_id is not null then
+    select stock into current_stock
+      from public.products where id = new.product_id for update;
+    if current_stock is not null and current_stock < new.qty then
+      raise exception 'Insufficient stock for product %', new.product_id;
+    end if;
+    if current_stock is not null then
+      update public.products
+         set stock = greatest(0, current_stock - new.qty)
+       where id = new.product_id;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists order_items_process on public.order_items;
+create trigger order_items_process
+  before insert on public.order_items
+  for each row execute function public.process_order_item();
+
+-- ---------- RLS ----------
+alter table public.orders      enable row level security;
+alter table public.order_items enable row level security;
+
+drop policy if exists orders_select_own on public.orders;
+create policy orders_select_own on public.orders
+  for select using (auth.uid() = user_id or public.is_admin());
+
+drop policy if exists orders_insert_own on public.orders;
+create policy orders_insert_own on public.orders
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists orders_admin_update on public.orders;
+create policy orders_admin_update on public.orders
+  for update using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists order_items_select_own on public.order_items;
+create policy order_items_select_own on public.order_items
+  for select using (
+    exists (
+      select 1 from public.orders o
+       where o.id = order_id
+         and (o.user_id = auth.uid() or public.is_admin())
+    )
+  );
+
+drop policy if exists order_items_insert_own on public.order_items;
+create policy order_items_insert_own on public.order_items
+  for insert with check (
+    exists (
+      select 1 from public.orders o
+       where o.id = order_id and o.user_id = auth.uid()
+    )
+  );
+
+-- ---------- Atomic order creation (RPC) ----------
+create or replace function public.create_order(p_payload jsonb)
+returns uuid
+language plpgsql security definer set search_path = public as $$
+declare
+  v_user_id  uuid := auth.uid();
+  v_order_id uuid;
+  v_item     jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  insert into public.orders (
+    user_id, status, subtotal, shipping_fee, total, payment_method,
+    full_name, phone, email, address_line, city, province, region, postal_code, notes
+  ) values (
+    v_user_id, 'pending',
+    (p_payload->>'subtotal')::numeric,
+    (p_payload->>'shipping_fee')::numeric,
+    (p_payload->>'total')::numeric,
+    p_payload->>'payment_method',
+    p_payload->>'full_name',
+    p_payload->>'phone',
+    nullif(p_payload->>'email',''),
+    p_payload->>'address_line',
+    p_payload->>'city',
+    p_payload->>'province',
+    p_payload->>'region',
+    nullif(p_payload->>'postal_code',''),
+    nullif(p_payload->>'notes','')
+  ) returning id into v_order_id;
+
+  for v_item in select * from jsonb_array_elements(p_payload->'items')
+  loop
+    insert into public.order_items (order_id, product_id, name, img, unit_price, qty)
+    values (
+      v_order_id,
+      nullif(v_item->>'product_id',''),
+      v_item->>'name',
+      nullif(v_item->>'img',''),
+      (v_item->>'unit_price')::numeric,
+      (v_item->>'qty')::int
+    );
+  end loop;
+
+  return v_order_id;
+end;
+$$;
+
+grant execute on function public.create_order(jsonb) to authenticated;
