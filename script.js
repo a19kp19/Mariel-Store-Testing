@@ -171,7 +171,7 @@ function toast(msg, type = "") {
    ========================================================= */
 const CART_KEY = "mariel_cart";
 const getCart = () => { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } };
-const setCart = (c) => { localStorage.setItem(CART_KEY, JSON.stringify(c)); renderCart(); };
+const setCart = (c) => { localStorage.setItem(CART_KEY, JSON.stringify(c)); renderCart(); if (typeof renderProductDetail === "function") renderProductDetail(); };
 
 function addToCart(item) {
   const cart = getCart();
@@ -249,10 +249,15 @@ const setWish = (w) => localStorage.setItem(WISH_KEY, JSON.stringify(w));
 function toggleWish(id) {
   const w = getWish();
   const idx = w.indexOf(id);
-  if (idx >= 0) { w.splice(idx, 1); toast("Removed from wishlist"); }
-  else { w.push(id); toast("Saved to wishlist", "ok"); }
+  const nowOn = idx < 0;
+  if (nowOn) { w.push(id); toast("Saved to wishlist", "ok"); }
+  else { w.splice(idx, 1); toast("Removed from wishlist"); }
   setWish(w);
-  $$(`.wish[data-id="${id}"]`).forEach(b => b.classList.toggle("on"));
+  $$(`.wish[data-id="${id}"]`).forEach(b => {
+    b.classList.toggle("on", nowOn);
+    if (b.classList.contains("btn")) b.textContent = nowOn ? "♥ Wishlisted" : "♡ Wishlist";
+    else b.textContent = nowOn ? "♥" : "♡";
+  });
 }
 
 /* =========================================================
