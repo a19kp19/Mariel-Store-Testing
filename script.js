@@ -467,7 +467,7 @@ async function updateAuthUI() {
   };
 
   // redirect away from login/register if logged in
-  if (PAGE_KEY === "login" || PAGE_KEY === "register") location.href = home();
+  if ((PAGE_KEY === "login" || PAGE_KEY === "register") && !location.hash.includes("recovery") && !location.hash.includes("type=recovery")) location.href = home();
 }
 
 function bindRegister() {
@@ -526,6 +526,86 @@ function bindLogin() {
       options: { redirectTo: location.origin + "/pages/login.html" }
     });
     if (error) setMsg("login-message", error.message);
+   });
+     // Forgot password flow
+     
+  const forgotLink = $("#forgot-password-link");
+  const forgotForm = $("#forgot-form");
+  const cancelForgot = $("#cancel-forgot-btn");
+  if (forgotLink && forgotForm) {
+    forgotLink.addEventListener("click", () => {
+      $("#forgot-email").value = $("#login-email").value.trim();
+      forgotForm.classList.remove("hidden");
+      f.classList.add("hidden");
+      setMsg("forgot-message", "");
+    });
+    cancelForgot?.addEventListener("click", () => {
+      forgotForm.classList.add("hidden");
+      f.classList.remove("hidden");
+    });
+    forgotForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = $("#forgot-email").value.trim();
+      if (!email) return setMsg("forgot-message", "Please enter your email.");
+      setMsg("forgot-message", "Sending reset link...");
+      const redirectTo = location.origin + "/pages/reset-password.html";
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) return setMsg("forgot-message", error.message);
+      setMsg("forgot-message", "Reset link sent. Check your email inbox (and spam).", true);
+    });
+  }
+}
+
+function bindResetPassword() {
+  const f = $("#reset-form"); if (!f || !sb) return;
+  const pw = $("#reset-password");
+  if (pw) pw.addEventListener("input", () => {
+    const v = pw.value;
+    const hint = $("#reset-password-hint");
+    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
+    if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
+    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
+  });
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const password = $("#reset-password").value;
+    const confirm = $("#reset-confirm").value;
+    setMsg("reset-message", "");
+    if (!isStrong(password)) return setMsg("reset-message", "Password is too weak.");
+    if (password !== confirm) return setMsg("reset-message", "Passwords do not match.");
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) return setMsg("reset-message", error.message);
+    setMsg("reset-message", "Password updated. Redirecting to login...", true);
+    setTimeout(async () => {
+      await sb.auth.signOut();
+      location.href = pagePath("login.html");
+    }, 1200);
+  });
+}
+
+function bindChangePassword() {
+  const f = $("#password-form"); if (!f || !sb) return;
+  const pw = $("#new-password");
+  if (pw) pw.addEventListener("input", () => {
+    const v = pw.value;
+    const hint = $("#new-password-hint");
+    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
+    if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
+    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
+  });
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const password = $("#new-password").value;
+    const confirm = $("#confirm-new-password").value;
+    setMsg("password-message", "");
+    if (!isStrong(password)) return setMsg("password-message", "Password is too weak.");
+    if (password !== confirm) return setMsg("password-message", "Passwords do not match.");
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) return setMsg("password-message", error.message);
+    setMsg("password-message", "Password updated successfully.", true);
+    f.reset();
+    const hint = $("#new-password-hint");
+    if (hint) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; }
   });
 }
 
@@ -684,6 +764,8 @@ document.addEventListener("DOMContentLoaded", () => {
   wireEvents();
   bindRegister();
   bindLogin();
+  bindResetPassword();
+  bindChangePassword();
   loadAccount();
   if (sb) updateAuthUI();
 });
