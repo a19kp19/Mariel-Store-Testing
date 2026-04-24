@@ -299,7 +299,6 @@ function productCard(p) {
       </div>
       <div class="actions">
         <a class="btn btn-outline" href="${link}">View</a>
-        <button class="btn add-cart" data-id="${p.id}">Add to Cart</button>
       </div>
     </article>
   `;
