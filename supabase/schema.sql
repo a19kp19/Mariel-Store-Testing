@@ -249,3 +249,83 @@ end;
 $$;
 
 grant execute on function public.create_order(jsonb) to authenticated;
+
+-- =========================================================
+-- SAVED ADDRESSES (max 3 per user)
+-- =========================================================
+create table if not exists public.addresses (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  label         text not null check (label in ('Home','Work','Other')),
+  full_name     text not null,
+  phone         text not null,
+  address_line  text not null,
+  city          text not null,
+  province      text not null,
+  region        text not null check (region in ('ncr','luzon','visayas','mindanao')),
+  postal_code   text,
+  is_default    boolean not null default false,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists addresses_user_idx on public.addresses (user_id);
+
+drop trigger if exists addresses_set_updated_at on public.addresses;
+create trigger addresses_set_updated_at
+  before update on public.addresses
+  for each row execute function public.set_updated_at();
+
+-- Enforce max 3 saved addresses per user
+create or replace function public.enforce_address_limit() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.addresses where user_id = new.user_id) >= 3 then
+    raise exception 'You can save up to 3 addresses only';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists addresses_limit on public.addresses;
+create trigger addresses_limit
+  before insert on public.addresses
+  for each row execute function public.enforce_address_limit();
+
+-- Only one default per user
+create or replace function public.unset_other_defaults() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.is_default then
+    update public.addresses
+       set is_default = false
+     where user_id = new.user_id and id <> new.id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists addresses_unset_others on public.addresses;
+create trigger addresses_unset_others
+  after insert or update of is_default on public.addresses
+  for each row execute function public.unset_other_defaults();
+
+-- RLS: users manage only their own addresses
+alter table public.addresses enable row level security;
+
+drop policy if exists addresses_select_own on public.addresses;
+create policy addresses_select_own on public.addresses
+  for select using (auth.uid() = user_id);
+
+drop policy if exists addresses_insert_own on public.addresses;
+create policy addresses_insert_own on public.addresses
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists addresses_update_own on public.addresses;
+create policy addresses_update_own on public.addresses
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists addresses_delete_own on public.addresses;
+create policy addresses_delete_own on public.addresses
+  for delete using (auth.uid() = user_id);
+
