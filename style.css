@@ -671,3 +671,11 @@ em { color: var(--brand); font-style: normal; }
   .pd-info h1 { font-size: 1.5rem; }
   .pd-price { font-size: 1.4rem; }
 }
+
+/* =========================================================
+   Account page
+   ========================================================= */
+   
+.account-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.account-head h2 { margin: 0; }
+.account-card .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
