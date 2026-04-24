@@ -65,6 +65,7 @@ function buildHeader() {
             </button>
             <div class="user-dropdown">
               <a href="${pagePath("account.html")}">My Account</a>
+              <a href="${pagePath("admin.html")}" id="admin-link" class="hidden">Admin Dashboard</a>
               <button id="logout-btn">Logout</button>
             </div>
           </div>
@@ -262,16 +263,73 @@ function toggleWish(id) {
 
 /* =========================================================
    PRODUCTS DATA
+   - Loaded from Supabase (table: public.products) when available.
+   - Falls back to this local seed list so the site keeps working
+     even before the SQL schema has been applied.
    ========================================================= */
-const PRODUCTS = [
-  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "Gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty.", details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G.", stock: 3 },
-  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "Gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty.", details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable.", stock: 7 },
-  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "Gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.", details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support.", stock: 5 },
-  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "Accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room.", details: "30cm diameter, silent quartz movement, AA battery powered.", stock: 1 },
-  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "Foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready.", details: "A box with different kind of chocolates inside. All-time favorite!", stock: 13 },
-  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box.", details: "Classic combination, irresistible taste.", stock: 22 },
-  { id: "chair1",   name: "Set of Lounge Chairs",     price: 3000,  cat: "Furnitures",  img: base + "images/products/chair1.jpg",     tag: "New",  desc: "Comfortable, stylish, perfect for any living room.", details: "3-seater, high-density foam cushions, durable fabric upholstery.", stock: 1 },
+function resolveImg(src) {
+  if (!src) return base + "images/logo.png";
+  if (/^(https?:)?\/\//i.test(src) || src.startsWith("/")) return src;
+  return base + src.replace(/^\.?\//, "");
+}
+
+let PRODUCTS = [
+  { id: "iphone14", name: "iPhone 14 Pro",             price: 50000, cat: "Gadgets",     img: resolveImg("images/products/Iphone14.jpg"),   tag: "Bestseller", desc: "128GB, factory unlocked, 1-year warranty.",                details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G.",      stock: 3 },
+  { id: "iphone12", name: "iPhone 12",                 price: 28000, cat: "Gadgets",     img: resolveImg("images/products/Iphone12.jpg"),   tag: "",           desc: "256GB, factory unlocked, 1-year warranty.",                details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable.",                  stock: 7 },
+  { id: "ipad",     name: "Apple iPad",                price: 22000, cat: "Gadgets",     img: resolveImg("images/products/Ipad.jpg"),       tag: "New",        desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.",   details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support.", stock: 5 },
+  { id: "clock",    name: "Wall Clock",                price: 200,   cat: "Accessories", img: resolveImg("images/products/Clock.jpg"),      tag: "",           desc: "Affordable, modern, durable for any room.",                 details: "30cm diameter, silent quartz movement, AA battery powered.",                            stock: 1 },
+  { id: "snickers", name: "Mixed Chocolates Box",      price: 500,   cat: "Foods",       img: resolveImg("images/products/Snickers.jpg"),   tag: "Hot",        desc: "A Box of Mixed Chocolates, gift ready.",                    details: "A box with different kind of chocolates inside. All-time favorite!",                    stock: 13 },
+  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: resolveImg("images/products/Chocolates.jpg"), tag: "",           desc: "Snickers and Dairy Milk Bars selling per box.",             details: "Classic combination, irresistible taste.",                                              stock: 22 },
+  { id: "chair1",   name: "Set of Lounge Chairs",      price: 3000,  cat: "Furnitures",  img: resolveImg("images/products/chair1.jpg"),     tag: "New",        desc: "Comfortable, stylish, perfect for any living room.",        details: "3-seater, high-density foam cushions, durable fabric upholstery.",                      stock: 1 },
 ];
+
+async function loadProducts() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb
+      .from("products")
+      .select("id,name,price,cat,img,tag,description,details,stock,sort_order")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.warn("Using local product fallback —", error.message);
+      return;
+    }
+    if (!data || !data.length) return;
+    PRODUCTS = data.map(r => ({
+      id: r.id,
+      name: r.name,
+      price: Number(r.price),
+      cat: r.cat,
+      img: resolveImg(r.img),
+      tag: r.tag || "",
+      desc: r.description || "",
+      details: r.details || "",
+      stock: Number(r.stock) || 0,
+    }));
+    renderFeatured();
+    renderProducts();
+    renderProductDetail();
+    renderCart();
+  } catch (e) {
+    console.warn("loadProducts failed", e);
+  }
+}
+
+async function isCurrentUserAdmin() {
+  if (!sb) return false;
+  try {
+    const { data: sess } = await sb.auth.getSession();
+    if (!sess?.session) return false;
+    const { data, error } = await sb
+      .from("admins")
+      .select("user_id")
+      .eq("user_id", sess.session.user.id)
+      .maybeSingle();
+    if (error) return false;
+    return !!data;
+  } catch { return false; }
+}
 
 const CATEGORIES = [
   { key: "all",         label: "All" },
@@ -496,6 +554,12 @@ async function updateAuthUI() {
     location.href = home();
   };
 
+  // Reveal the Admin link only for admin users
+  isCurrentUserAdmin().then(isAdmin => {
+    const link = $("#admin-link");
+    if (link) link.classList.toggle("hidden", !isAdmin);
+  });
+
   // redirect away from login/register if logged in
   if ((PAGE_KEY === "login" || PAGE_KEY === "register") && !location.hash.includes("type=recovery")) location.href = home();
 }
@@ -673,6 +737,154 @@ function bindAccountEdit(u, m) {
 }
 
 /* =========================================================
+   ADMIN PAGE
+   ========================================================= */
+async function bindAdmin() {
+  const app = $("#admin-app");
+  if (!app || !sb) return;
+
+  const loading = $("#admin-loading");
+  const denied = $("#admin-denied");
+  const showState = (state) => {
+    loading?.classList.toggle("hidden", state !== "loading");
+    denied?.classList.toggle("hidden", state !== "denied");
+    app.classList.toggle("hidden", state !== "ok");
+  };
+
+  // Require login + admin
+  const { data: sess } = await sb.auth.getSession();
+  if (!sess?.session) { location.href = pagePath("login.html"); return; }
+  const isAdmin = await isCurrentUserAdmin();
+  if (!isAdmin) { showState("denied"); return; }
+  showState("ok");
+
+  const form = $("#admin-product-form");
+  const titleEl = $("#admin-form-title");
+  const cancelBtn = $("#admin-cancel-edit-btn");
+  const idInput = $("#p-id");
+
+  const fillForm = (p) => {
+    $("#p-original-id").value = p?.id || "";
+    idInput.value = p?.id || "";
+    idInput.disabled = !!p;
+    $("#p-name").value = p?.name || "";
+    $("#p-price").value = p?.price ?? "";
+    $("#p-stock").value = p?.stock ?? 0;
+    $("#p-cat").value = p?.cat || "Gadgets";
+    $("#p-tag").value = p?.tag || "";
+    $("#p-img").value = p?.img || "";
+    $("#p-desc").value = p?.description || "";
+    $("#p-details").value = p?.details || "";
+    $("#p-sort").value = p?.sort_order ?? 0;
+    titleEl.innerHTML = p ? `Edit <em>Product</em>` : `Add <em>Product</em>`;
+    cancelBtn.classList.toggle("hidden", !p);
+    setMsg("admin-form-message", "");
+  };
+
+  fillForm(null);
+
+  $("#admin-reset-btn").onclick = () => fillForm(null);
+  cancelBtn.onclick = () => fillForm(null);
+
+  async function refreshTable() {
+    const tbody = $("#admin-product-rows");
+    tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">Loading…</td></tr>`;
+    const { data, error } = await sb
+      .from("products")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">Error loading: ${error.message}</td></tr>`;
+      return;
+    }
+    $("#admin-count").textContent = `${data.length} item${data.length === 1 ? "" : "s"}`;
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">No products yet — add your first one above.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(p => `
+      <tr>
+        <td><img src="${resolveImg(p.img)}" alt="" class="admin-thumb" onerror="this.style.opacity='.3'"></td>
+        <td>
+          <div style="font-weight:600">${escapeHtml(p.name)}</div>
+          <div class="muted" style="font-size:.78rem">${escapeHtml(p.id)}</div>
+        </td>
+        <td>${escapeHtml(p.cat)}</td>
+        <td>${peso(p.price)}</td>
+        <td>${p.stock}</td>
+        <td>${p.tag ? `<span class="tag-pill">${escapeHtml(p.tag)}</span>` : "—"}</td>
+        <td class="admin-actions">
+          <button class="btn btn-outline btn-sm" data-admin="edit" data-id="${escapeAttr(p.id)}">Edit</button>
+          <button class="btn btn-sm btn-danger" data-admin="del" data-id="${escapeAttr(p.id)}">Delete</button>
+        </td>
+      </tr>
+    `).join("");
+
+    // Wire row buttons
+    tbody.querySelectorAll('[data-admin="edit"]').forEach(b => {
+      b.onclick = () => {
+        const row = data.find(r => r.id === b.dataset.id);
+        if (!row) return;
+        fillForm(row);
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+    });
+    tbody.querySelectorAll('[data-admin="del"]').forEach(b => {
+      b.onclick = async () => {
+        if (!confirm(`Delete "${b.dataset.id}"? This cannot be undone.`)) return;
+        const { error } = await sb.from("products").delete().eq("id", b.dataset.id);
+        if (error) return toast(error.message, "bad");
+        toast("Product deleted", "ok");
+        await refreshTable();
+        await loadProducts();
+      };
+    });
+  }
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    setMsg("admin-form-message", "Saving...");
+    const originalId = $("#p-original-id").value;
+    const editing = !!originalId;
+    const payload = {
+      id: idInput.value.trim(),
+      name: $("#p-name").value.trim(),
+      price: Number($("#p-price").value),
+      stock: parseInt($("#p-stock").value, 10) || 0,
+      cat: $("#p-cat").value,
+      tag: $("#p-tag").value.trim() || null,
+      img: $("#p-img").value.trim() || null,
+      description: $("#p-desc").value.trim() || null,
+      details: $("#p-details").value.trim() || null,
+      sort_order: parseInt($("#p-sort").value, 10) || 0,
+    };
+    if (!payload.id || !/^[a-z0-9_\-]+$/.test(payload.id))
+      return setMsg("admin-form-message", "Product ID must be lowercase letters, numbers, hyphens or underscores.");
+    if (!payload.name) return setMsg("admin-form-message", "Name is required.");
+    if (!(payload.price >= 0)) return setMsg("admin-form-message", "Price must be a non-negative number.");
+
+    const q = editing
+      ? sb.from("products").update(payload).eq("id", originalId)
+      : sb.from("products").insert(payload);
+    const { error } = await q;
+    if (error) return setMsg("admin-form-message", error.message);
+
+    setMsg("admin-form-message", editing ? "Product updated." : "Product added.", true);
+    fillForm(null);
+    await refreshTable();
+    await loadProducts();
+  };
+
+  await refreshTable();
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+/* =========================================================
    GLOBAL EVENT WIRING
    ========================================================= */
 function wireEvents() {
@@ -765,4 +977,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bindChangePassword();
   loadAccount();
   if (sb) updateAuthUI();
+  loadProducts();
+  bindAdmin();
 });
