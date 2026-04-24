@@ -14,18 +14,49 @@
 <section class="page-header">
   <div class="container">
     <h1>My <em>Account</em></h1>
-    <p>View your basic account details.</p>
+    <p>View and update your account details.</p>
   </div>
 </section>
 
 <section class="section section-white">
   <div class="container">
     <div class="account-card">
-      <h2>Profile <em>Details</em></h2>
-      <div class="account-row"><span class="k">Username</span><span class="v" id="account-username">—</span></div>
-      <div class="account-row"><span class="k">Full Name</span><span class="v" id="account-full-name">—</span></div>
-      <div class="account-row"><span class="k">Email</span><span class="v" id="account-email">—</span></div>
-      <div class="account-row"><span class="k">Phone</span><span class="v" id="account-phone">—</span></div>
+      <div class="account-head">
+        <h2>Profile <em>Details</em></h2>
+        <button id="edit-profile-btn" class="btn btn-outline">Edit Profile</button>
+      </div>
+
+      <div id="account-view">
+        <div class="account-row"><span class="k">Username</span><span class="v" id="account-username">—</span></div>
+        <div class="account-row"><span class="k">Full Name</span><span class="v" id="account-full-name">—</span></div>
+        <div class="account-row"><span class="k">Email</span><span class="v" id="account-email">—</span></div>
+        <div class="account-row"><span class="k">Phone</span><span class="v" id="account-phone">—</span></div>
+      </div>
+
+      <form id="account-edit" class="hidden" novalidate>
+        <div class="field">
+          <label for="edit-username">Username</label>
+          <input type="text" id="edit-username" required>
+        </div>
+        <div class="field">
+          <label for="edit-full-name">Full Name</label>
+          <input type="text" id="edit-full-name" required>
+        </div>
+        <div class="field">
+          <label for="edit-email">Email</label>
+          <input type="email" id="edit-email" disabled>
+          <p class="hint">Email cannot be changed here.</p>
+        </div>
+        <div class="field">
+          <label for="edit-phone">Phone</label>
+          <input type="tel" id="edit-phone" placeholder="e.g. 09171234567">
+        </div>
+        <div class="row">
+          <button type="submit" class="btn">Save Changes</button>
+          <button type="button" id="cancel-edit-btn" class="btn btn-outline">Cancel</button>
+        </div>
+        <p id="edit-message" class="form-msg"></p>
+      </form>
     </div>
   </div>
 </section>
