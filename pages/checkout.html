@@ -38,6 +38,11 @@
       <form id="checkout-form" class="account-card" novalidate>
         <h2>Delivery <em>Details</em></h2>
 
+        <div id="saved-addresses-picker" class="hidden" style="margin:6px 0 14px">
+          <p class="muted" style="margin:0 0 10px;font-size:.9rem">Choose a saved address or enter a new one:</p>
+          <div id="saved-addresses-cards" class="addr-picker"></div>
+        </div>
+
         <div class="checkout-fields">
           <div class="field">
             <label for="co-name">Full Name</label>
@@ -80,6 +85,14 @@
           <div class="field co-full">
             <label for="co-notes">Notes for Rider <span class="muted">(optional)</span></label>
             <textarea id="co-notes" rows="2" placeholder="e.g. landmarks, gate code"></textarea>
+          </div>
+          <div class="field co-full" id="save-addr-row">
+            <label class="check-row">
+              <input type="checkbox" id="co-save-address" checked>
+              <span>Save this address to my account for next time
+                <span class="muted" id="co-save-help" style="font-size:.85rem">(label will be set to "Home" by default)</span>
+              </span>
+            </label>
           </div>
         </div>
 
