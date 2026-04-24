@@ -959,6 +959,154 @@ function wireEvents() {
 }
 
 /* =========================================================
+   SAVED ADDRESSES (Account page)
+   ========================================================= */
+const ADDR_LIMIT = 3;
+
+async function fetchUserAddresses() {
+  if (!sb) return [];
+  const { data: sess } = await sb.auth.getSession();
+  if (!sess?.session) return [];
+  const { data, error } = await sb
+    .from("addresses")
+    .select("*")
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) { console.warn(error.message); return []; }
+  return data || [];
+}
+
+async function bindAddresses() {
+  const list = $("#addresses-list");
+  if (!list || !sb) return;
+
+  const form = $("#address-form");
+  const addBtn = $("#addr-add-btn");
+  const cancelBtn = $("#addr-cancel-btn");
+  const titleEl = $("#addr-form-title");
+
+  function fill(a) {
+    $("#addr-id").value = a?.id || "";
+    $("#addr-label").value = a?.label || "Home";
+    $("#addr-name").value = a?.full_name || "";
+    $("#addr-phone").value = a?.phone || "";
+    $("#addr-line").value = a?.address_line || "";
+    $("#addr-city").value = a?.city || "";
+    $("#addr-province").value = a?.province || "";
+    $("#addr-region").value = a?.region || "";
+    $("#addr-postal").value = a?.postal_code || "";
+    $("#addr-default").checked = !!a?.is_default;
+    titleEl.textContent = a ? "Edit Address" : "Add Address";
+    setMsg("addr-message", "");
+  }
+
+  function showForm(a) {
+    fill(a);
+    form.classList.remove("hidden");
+    addBtn.classList.add("hidden");
+    form.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function hideForm() {
+    form.classList.add("hidden");
+    addBtn.classList.remove("hidden");
+  }
+
+  async function refresh() {
+    list.innerHTML = `<p class="muted">Loading...</p>`;
+    const data = await fetchUserAddresses();
+    addBtn.disabled = data.length >= ADDR_LIMIT;
+    addBtn.title = data.length >= ADDR_LIMIT ? "You can save up to 3 addresses." : "";
+
+    if (!data.length) {
+      list.innerHTML = `<p class="muted" style="margin:0">No saved addresses yet — click <strong>+ Add Address</strong> to add one.</p>`;
+      return;
+    }
+
+    list.innerHTML = `<div class="addr-grid">${data.map(a => `
+      <div class="addr-card${a.is_default ? " is-default" : ""}">
+        <div class="addr-card-head">
+          <span class="addr-label-pill">${escapeHtml(a.label)}</span>
+          ${a.is_default ? `<span class="addr-default-pill">Default</span>` : ""}
+        </div>
+        <div class="addr-card-body">
+          <strong>${escapeHtml(a.full_name)}</strong>
+          <div class="muted" style="font-size:.88rem">${escapeHtml(a.phone)}</div>
+          <div style="margin-top:6px">${escapeHtml(a.address_line)}</div>
+          <div class="muted" style="font-size:.88rem">${escapeHtml(a.city)}, ${escapeHtml(a.province)}${a.postal_code ? " · " + escapeHtml(a.postal_code) : ""}</div>
+          <div class="muted" style="font-size:.85rem">${escapeHtml(REGION_LABELS[a.region] || a.region)}</div>
+        </div>
+        <div class="addr-card-actions">
+          ${a.is_default ? "" : `<button class="btn btn-outline btn-sm" data-addr="default" data-id="${a.id}">Set Default</button>`}
+          <button class="btn btn-outline btn-sm" data-addr="edit" data-id="${a.id}">Edit</button>
+          <button class="btn btn-sm btn-danger" data-addr="del" data-id="${a.id}">Delete</button>
+        </div>
+      </div>
+    `).join("")}</div>`;
+
+    list.querySelectorAll('[data-addr="edit"]').forEach(b => {
+      b.onclick = () => { const a = data.find(x => x.id === b.dataset.id); if (a) showForm(a); };
+    });
+    list.querySelectorAll('[data-addr="del"]').forEach(b => {
+      b.onclick = async () => {
+        if (!confirm("Delete this address?")) return;
+        const { error } = await sb.from("addresses").delete().eq("id", b.dataset.id);
+        if (error) return toast(error.message, "bad");
+        toast("Address deleted", "ok");
+        await refresh();
+      };
+    });
+    list.querySelectorAll('[data-addr="default"]').forEach(b => {
+      b.onclick = async () => {
+        const { error } = await sb.from("addresses").update({ is_default: true }).eq("id", b.dataset.id);
+        if (error) return toast(error.message, "bad");
+        toast("Default address updated", "ok");
+        await refresh();
+      };
+    });
+  }
+
+  addBtn.onclick = () => showForm(null);
+  cancelBtn.onclick = hideForm;
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    setMsg("addr-message", "");
+    const id = $("#addr-id").value;
+    const payload = {
+      label:        $("#addr-label").value,
+      full_name:    $("#addr-name").value.trim(),
+      phone:        $("#addr-phone").value.trim(),
+      address_line: $("#addr-line").value.trim(),
+      city:         $("#addr-city").value.trim(),
+      province:     $("#addr-province").value.trim(),
+      region:       $("#addr-region").value,
+      postal_code:  $("#addr-postal").value.trim() || null,
+      is_default:   $("#addr-default").checked,
+    };
+    const required = ["full_name","phone","address_line","city","province","region"];
+    for (const k of required) if (!payload[k]) return setMsg("addr-message", "Please fill in all required fields.");
+
+    let error;
+    if (id) {
+      ({ error } = await sb.from("addresses").update(payload).eq("id", id));
+    } else {
+      const { data: sess } = await sb.auth.getSession();
+      if (!sess?.session) return setMsg("addr-message", "Please log in.");
+      ({ error } = await sb.from("addresses").insert({ ...payload, user_id: sess.session.user.id }));
+    }
+    if (error) {
+      const msg = /up to 3/i.test(error.message) ? "You can save up to 3 addresses only." : error.message;
+      return setMsg("addr-message", msg);
+    }
+    toast(id ? "Address updated" : "Address saved", "ok");
+    hideForm();
+    await refresh();
+  };
+
+  await refresh();
+}
+
+/* =========================================================
    CHECKOUT PAGE
    ========================================================= */
 const SHIPPING_FEES = { ncr: 100, luzon: 180, visayas: 220, mindanao: 250 };
@@ -990,6 +1138,76 @@ async function bindCheckout() {
   $("#co-name").value  = meta.full_name || "";
   $("#co-phone").value = meta.phone || u?.user?.phone || "";
   $("#co-email").value = u?.user?.email || "";
+
+  // Saved-addresses picker — auto-fills the form when chosen
+  const savedAddresses = await fetchUserAddresses();
+  let activePickedAddrId = null;
+
+  function fillFromAddress(a) {
+    $("#co-name").value     = a.full_name;
+    $("#co-phone").value    = a.phone;
+    $("#co-address").value  = a.address_line;
+    $("#co-city").value     = a.city;
+    $("#co-province").value = a.province;
+    $("#co-region").value   = a.region;
+    $("#co-postal").value   = a.postal_code || "";
+    activePickedAddrId = a.id;
+    recomputeTotals();
+    refreshSaveCheckbox();
+  }
+
+  function refreshSaveCheckbox() {
+    const row = $("#save-addr-row");
+    const cb = $("#co-save-address");
+    // Hide the "save this address" option whenever the user picked a saved one,
+    // or when they already have the maximum number of saved addresses.
+    const hide = !!activePickedAddrId || savedAddresses.length >= ADDR_LIMIT;
+    row.classList.toggle("hidden", hide);
+    if (hide) cb.checked = false;
+  }
+
+  if (savedAddresses.length) {
+    const picker = $("#saved-addresses-picker");
+    const cards = $("#saved-addresses-cards");
+    picker.classList.remove("hidden");
+    cards.innerHTML = savedAddresses.map(a => `
+      <button type="button" class="addr-pick-card" data-id="${a.id}">
+        <div class="addr-pick-head">
+          <span class="addr-label-pill">${escapeHtml(a.label)}</span>
+          ${a.is_default ? `<span class="addr-default-pill">Default</span>` : ""}
+        </div>
+        <strong>${escapeHtml(a.full_name)}</strong>
+        <div class="muted" style="font-size:.85rem">${escapeHtml(a.address_line)}</div>
+        <div class="muted" style="font-size:.85rem">${escapeHtml(a.city)}, ${escapeHtml(a.province)}</div>
+      </button>
+    `).join("") + `
+      <button type="button" class="addr-pick-card addr-pick-new" data-new="1">
+        <div style="font-size:1.6rem">+</div>
+        <strong>Use a new address</strong>
+      </button>
+    `;
+    cards.querySelectorAll(".addr-pick-card").forEach(c => {
+      c.onclick = () => {
+        cards.querySelectorAll(".addr-pick-card").forEach(x => x.classList.remove("active"));
+        c.classList.add("active");
+        if (c.dataset.new) {
+          activePickedAddrId = null;
+          ["co-address","co-city","co-province","co-region","co-postal"].forEach(id => $("#" + id).value = "");
+          refreshSaveCheckbox();
+          recomputeTotals();
+          return;
+        }
+        const a = savedAddresses.find(x => x.id === c.dataset.id);
+        if (a) fillFromAddress(a);
+      };
+    });
+
+    // Auto-pick the default (or first) address
+    const defaultAddr = savedAddresses.find(a => a.is_default) || savedAddresses[0];
+    fillFromAddress(defaultAddr);
+    cards.querySelector(`.addr-pick-card[data-id="${defaultAddr.id}"]`)?.classList.add("active");
+  }
+  refreshSaveCheckbox();
 
   function renderItems() {
     const list = getCart();
@@ -1068,6 +1286,27 @@ async function bindCheckout() {
         ? "Sorry — one or more items just went out of stock. Please review your cart."
         : (error.message || "Could not place order. Please try again.");
       return setMsg("checkout-message", msg);
+    }
+
+    // Auto-save the address (only if user is entering a new one and asked to save it)
+    const wantsSave = $("#co-save-address")?.checked;
+    if (wantsSave && !activePickedAddrId && savedAddresses.length < ADDR_LIMIT) {
+      const { data: sess } = await sb.auth.getSession();
+      if (sess?.session) {
+        await sb.from("addresses").insert({
+          user_id:      sess.session.user.id,
+          label:        savedAddresses.length === 0 ? "Home" : "Other",
+          full_name:    payload.full_name,
+          phone:        payload.phone,
+          address_line: payload.address_line,
+          city:         payload.city,
+          province:     payload.province,
+          region:       payload.region,
+          postal_code:  payload.postal_code || null,
+          is_default:   savedAddresses.length === 0,
+        });
+        // Errors here are non-fatal — order was already placed.
+      }
     }
 
     setCart([]);
@@ -1253,4 +1492,5 @@ document.addEventListener("DOMContentLoaded", () => {
   bindAdmin();
   bindCheckout();
   bindOrders();
+  bindAddresses();
 });
