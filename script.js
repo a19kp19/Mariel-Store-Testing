@@ -65,6 +65,7 @@ function buildHeader() {
             </button>
             <div class="user-dropdown">
               <a href="${pagePath("account.html")}">My Account</a>
+              <a href="${pagePath("orders.html")}">My Orders</a>
               <a href="${pagePath("admin.html")}" id="admin-link" class="hidden">Admin Dashboard</a>
               <button id="logout-btn">Logout</button>
             </div>
@@ -935,14 +936,13 @@ function wireEvents() {
           loggedIn = !!data.session;
         }
         if (!loggedIn) {
-          toast("Please create an account to checkout", "bad");
+          toast("Please log in to checkout", "bad");
           closeCart();
-          setTimeout(() => location.href = pagePath("register.html"), 800);
+          setTimeout(() => location.href = pagePath("login.html"), 800);
           return;
         }
-        setCart([]);
         closeCart();
-        toast("Order placed! We'll contact you soon.", "ok");
+        location.href = pagePath("checkout.html");
       })();
       return;
     }
@@ -956,6 +956,278 @@ function wireEvents() {
   document.addEventListener("input", (e) => {
     if (e.target.id === "product-search") renderProducts();
   });
+}
+
+/* =========================================================
+   CHECKOUT PAGE
+   ========================================================= */
+const SHIPPING_FEES = { ncr: 100, luzon: 180, visayas: 220, mindanao: 250 };
+const REGION_LABELS  = { ncr: "Metro Manila (NCR)", luzon: "Luzon (outside NCR)", visayas: "Visayas", mindanao: "Mindanao" };
+const PAYMENT_LABELS = { cod: "Cash on Delivery", online: "Online Payment", installment: "Installment" };
+
+async function bindCheckout() {
+  const app = $("#checkout-app");
+  if (!app || !sb) return;
+
+  const loading = $("#checkout-loading");
+  const empty = $("#checkout-empty");
+  const showState = (s) => {
+    loading?.classList.toggle("hidden", s !== "loading");
+    empty?.classList.toggle("hidden", s !== "empty");
+    app.classList.toggle("hidden", s !== "ok");
+  };
+
+  const { data: sess } = await sb.auth.getSession();
+  if (!sess?.session) { location.href = pagePath("login.html"); return; }
+
+  const cart = getCart();
+  if (!cart.length) { showState("empty"); return; }
+  showState("ok");
+
+  // Prefill from user metadata
+  const { data: u } = await sb.auth.getUser();
+  const meta = u?.user?.user_metadata || {};
+  $("#co-name").value  = meta.full_name || "";
+  $("#co-phone").value = meta.phone || u?.user?.phone || "";
+  $("#co-email").value = u?.user?.email || "";
+
+  function renderItems() {
+    const list = getCart();
+    $("#co-items").innerHTML = list.map(i => `
+      <div class="co-item">
+        <img src="${i.img}" alt="">
+        <div class="co-item-body">
+          <div class="co-item-name">${escapeHtml(i.name)}</div>
+          <div class="muted" style="font-size:.83rem">${i.qty} × ${peso(i.price)}</div>
+        </div>
+        <div class="co-item-total">${peso(i.price * i.qty)}</div>
+      </div>
+    `).join("");
+  }
+
+  function recomputeTotals() {
+    const list = getCart();
+    const subtotal = list.reduce((s, i) => s + i.price * i.qty, 0);
+    const region = $("#co-region").value;
+    const shipping = SHIPPING_FEES[region];
+    $("#co-subtotal").textContent = peso(subtotal);
+    $("#co-shipping").textContent = shipping == null ? "—" : peso(shipping);
+    $("#co-total").textContent = peso(subtotal + (shipping || 0));
+  }
+
+  renderItems();
+  recomputeTotals();
+
+  $("#co-region").addEventListener("change", recomputeTotals);
+
+  $("#checkout-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setMsg("checkout-message", "");
+
+    const list = getCart();
+    if (!list.length) return setMsg("checkout-message", "Your cart is empty.");
+
+    const region = $("#co-region").value;
+    if (!region) return setMsg("checkout-message", "Please select your region.");
+    const shipping_fee = SHIPPING_FEES[region];
+    const subtotal = list.reduce((s, i) => s + i.price * i.qty, 0);
+    const total = subtotal + shipping_fee;
+    const payment_method = document.querySelector('input[name="co-pay"]:checked')?.value || "cod";
+
+    const required = ["co-name","co-phone","co-address","co-city","co-province"];
+    for (const id of required) {
+      if (!$("#" + id).value.trim()) {
+        return setMsg("checkout-message", "Please fill in all required fields.");
+      }
+    }
+
+    const payload = {
+      subtotal, shipping_fee, total, payment_method,
+      full_name:    $("#co-name").value.trim(),
+      phone:        $("#co-phone").value.trim(),
+      email:        $("#co-email").value.trim(),
+      address_line: $("#co-address").value.trim(),
+      city:         $("#co-city").value.trim(),
+      province:     $("#co-province").value.trim(),
+      region,
+      postal_code:  $("#co-postal").value.trim(),
+      notes:        $("#co-notes").value.trim(),
+      items: list.map(i => ({
+        product_id: i.id, name: i.name, img: i.img,
+        unit_price: i.price, qty: i.qty
+      })),
+    };
+
+    const btn = $("#place-order-btn");
+    btn.disabled = true; btn.textContent = "Placing order...";
+
+    const { data, error } = await sb.rpc("create_order", { p_payload: payload });
+    if (error) {
+      btn.disabled = false; btn.textContent = "Place Order";
+      const msg = /Insufficient stock/i.test(error.message)
+        ? "Sorry — one or more items just went out of stock. Please review your cart."
+        : (error.message || "Could not place order. Please try again.");
+      return setMsg("checkout-message", msg);
+    }
+
+    setCart([]);
+    location.href = pagePath("orders.html") + `?id=${data}&new=1`;
+  });
+}
+
+/* =========================================================
+   ORDERS PAGE (list + detail)
+   ========================================================= */
+const STATUS_LABELS = {
+  pending: "Pending", packed: "Packed", shipped: "Shipped",
+  delivered: "Delivered", cancelled: "Cancelled"
+};
+
+function statusPill(status) {
+  return `<span class="status-pill status-${status}">${STATUS_LABELS[status] || status}</span>`;
+}
+
+async function bindOrders() {
+  const host = $("#orders-content");
+  const loading = $("#orders-loading");
+  if (!host || !sb) return;
+
+  const { data: sess } = await sb.auth.getSession();
+  if (!sess?.session) { location.href = pagePath("login.html"); return; }
+
+  const params = new URLSearchParams(location.search);
+  const orderId = params.get("id");
+  const isNew = params.get("new") === "1";
+
+  loading.classList.add("hidden");
+  host.classList.remove("hidden");
+
+  if (orderId) {
+    return renderOrderDetail(host, orderId, isNew);
+  }
+  return renderOrderList(host);
+}
+
+async function renderOrderList(host) {
+  host.innerHTML = `<p class="muted">Loading orders…</p>`;
+  const { data, error } = await sb
+    .from("orders")
+    .select("id,status,total,created_at,payment_method, order_items(qty)")
+    .order("created_at", { ascending: false });
+  if (error) { host.innerHTML = `<p class="form-msg">${escapeHtml(error.message)}</p>`; return; }
+  if (!data.length) {
+    host.innerHTML = `
+      <div class="empty">
+        <div class="icon">📦</div>
+        <h2>No orders yet</h2>
+        <p class="muted">When you place your first order, it'll show up here.</p>
+        <a class="btn" href="products.html">Start Shopping</a>
+      </div>`;
+    return;
+  }
+  host.innerHTML = `
+    <div class="orders-list">
+      ${data.map(o => {
+        const itemCount = (o.order_items || []).reduce((s, x) => s + (x.qty || 0), 0);
+        const date = new Date(o.created_at).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" });
+        return `
+          <a class="order-card" href="orders.html?id=${o.id}">
+            <div class="order-card-head">
+              <div>
+                <div class="order-id">Order #${o.id.slice(0, 8)}</div>
+                <div class="muted" style="font-size:.83rem">${date}</div>
+              </div>
+              ${statusPill(o.status)}
+            </div>
+            <div class="order-card-body">
+              <span>${itemCount} item${itemCount === 1 ? "" : "s"} · ${PAYMENT_LABELS[o.payment_method] || o.payment_method}</span>
+              <strong>${peso(o.total)}</strong>
+            </div>
+          </a>
+        `;
+      }).join("")}
+    </div>`;
+}
+
+async function renderOrderDetail(host, orderId, isNew) {
+  host.innerHTML = `<p class="muted">Loading order…</p>`;
+  const { data: order, error } = await sb
+    .from("orders").select("*").eq("id", orderId).maybeSingle();
+  if (error || !order) {
+    host.innerHTML = `
+      <div class="empty">
+        <div class="icon">🔍</div>
+        <h2>Order not found</h2>
+        <p class="muted">We couldn't find that order on your account.</p>
+        <a class="btn" href="orders.html">Back to My Orders</a>
+      </div>`;
+    return;
+  }
+  const { data: items } = await sb
+    .from("order_items").select("*").eq("order_id", orderId);
+
+  const date = new Date(order.created_at).toLocaleString("en-PH", { dateStyle: "long", timeStyle: "short" });
+  const banner = isNew ? `
+    <div class="thank-banner">
+      <div class="icon">🎉</div>
+      <div>
+        <h2 style="margin:0">Thank you for your order!</h2>
+        <p class="muted" style="margin:4px 0 0">We've received your order and will contact you shortly to confirm delivery.</p>
+      </div>
+    </div>` : "";
+
+  host.innerHTML = `
+    ${banner}
+    <div class="order-detail">
+      <div class="account-card">
+        <div class="account-head">
+          <div>
+            <h2 style="margin:0">Order <em>#${order.id.slice(0,8)}</em></h2>
+            <div class="muted" style="font-size:.88rem">Placed ${date}</div>
+          </div>
+          ${statusPill(order.status)}
+        </div>
+
+        <div class="order-items">
+          ${(items || []).map(it => `
+            <div class="co-item">
+              <img src="${resolveImg(it.img)}" alt="">
+              <div class="co-item-body">
+                <div class="co-item-name">${escapeHtml(it.name)}</div>
+                <div class="muted" style="font-size:.83rem">${it.qty} × ${peso(it.unit_price)}</div>
+              </div>
+              <div class="co-item-total">${peso(it.line_total)}</div>
+            </div>
+          `).join("")}
+        </div>
+
+        <hr style="border:0;border-top:1px solid var(--line,#eee);margin:14px 0">
+        <div class="co-row"><span>Subtotal</span><span>${peso(order.subtotal)}</span></div>
+        <div class="co-row"><span>Shipping</span><span>${peso(order.shipping_fee)}</span></div>
+        <div class="co-row co-total"><span>Total</span><span>${peso(order.total)}</span></div>
+      </div>
+
+      <aside class="account-card">
+        <h2>Delivery <em>Details</em></h2>
+        <p style="margin:0">
+          <strong>${escapeHtml(order.full_name)}</strong><br>
+          ${escapeHtml(order.phone)}${order.email ? `<br>${escapeHtml(order.email)}` : ""}
+        </p>
+        <p class="muted" style="margin:10px 0 0">
+          ${escapeHtml(order.address_line)}<br>
+          ${escapeHtml(order.city)}, ${escapeHtml(order.province)}<br>
+          ${escapeHtml(REGION_LABELS[order.region] || order.region)}${order.postal_code ? ` · ${escapeHtml(order.postal_code)}` : ""}
+        </p>
+        ${order.notes ? `<p class="muted" style="margin-top:10px"><strong>Notes:</strong> ${escapeHtml(order.notes)}</p>` : ""}
+
+        <h2 style="margin-top:18px">Payment</h2>
+        <p style="margin:0">${escapeHtml(PAYMENT_LABELS[order.payment_method] || order.payment_method)}</p>
+
+        <a href="orders.html" class="btn btn-outline btn-block" style="margin-top:18px">All My Orders</a>
+        <a href="products.html" class="btn btn-block" style="margin-top:10px">Continue Shopping</a>
+      </aside>
+    </div>
+  `;
 }
 
 /* =========================================================
@@ -979,4 +1251,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sb) updateAuthUI();
   loadProducts();
   bindAdmin();
+  bindCheckout();
+  bindOrders();
 });
