@@ -675,10 +675,10 @@ em { color: var(--brand); font-style: normal; }
 /* =========================================================
    Account page
    ========================================================= */
-   
 .account-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
 .account-head h2 { margin: 0; }
 .account-card .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
 .link-btn { background: none; border: 0; color: var(--brand); font: inherit; cursor: pointer; padding: 0; text-decoration: underline; }
 .link-btn:hover { opacity: .8; }
 .forgot-row { display: flex; justify-content: flex-end; margin: -8px 0 14px; }
