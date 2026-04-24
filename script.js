@@ -534,10 +534,65 @@ async function loadAccount() {
   const { data, error } = await sb.auth.getUser();
   if (error || !data.user) { location.href = pagePath("login.html"); return; }
   const u = data.user, m = u.user_metadata || {};
-  u1.textContent = m.username || u.email?.split("@")[0] || "—";
-  $("#account-full-name").textContent = m.full_name || "—";
+  const username = m.username || u.email?.split("@")[0] || "—";
+  const fullName = m.full_name || "—";
+  const phone = m.phone || u.phone || "—";
+  u1.textContent = username;
+  $("#account-full-name").textContent = fullName;
   $("#account-email").textContent = u.email || "—";
-  $("#account-phone").textContent = u.phone || "—";
+  $("#account-phone").textContent = phone;
+  bindAccountEdit(u, m);
+}
+
+function bindAccountEdit(u, m) {
+  const editBtn = $("#edit-profile-btn");
+  const cancelBtn = $("#cancel-edit-btn");
+  const form = $("#account-edit");
+  const view = $("#account-view");
+  if (!editBtn || !form || !view) return;
+  if (form.dataset.bound) return;
+  form.dataset.bound = "1";
+
+  const openEdit = () => {
+    $("#edit-username").value = m.username || (u.email?.split("@")[0] || "");
+    $("#edit-full-name").value = m.full_name || "";
+    $("#edit-email").value = u.email || "";
+    $("#edit-phone").value = m.phone || u.phone || "";
+    setMsg("edit-message", "");
+    view.classList.add("hidden");
+    form.classList.remove("hidden");
+    editBtn.classList.add("hidden");
+  };
+  const closeEdit = () => {
+    form.classList.add("hidden");
+    view.classList.remove("hidden");
+    editBtn.classList.remove("hidden");
+  };
+
+  editBtn.onclick = openEdit;
+  cancelBtn.onclick = closeEdit;
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const username = $("#edit-username").value.trim();
+    const full_name = $("#edit-full-name").value.trim();
+    const phone = $("#edit-phone").value.trim();
+    if (!username) return setMsg("edit-message", "Username is required.");
+    if (!full_name) return setMsg("edit-message", "Full name is required.");
+    setMsg("edit-message", "Saving...");
+    const { data, error } = await sb.auth.updateUser({
+      data: { ...m, username, full_name, phone }
+    });
+    if (error) return setMsg("edit-message", error.message);
+    const newMeta = data?.user?.user_metadata || { username, full_name, phone };
+    $("#account-username").textContent = newMeta.username || "—";
+    $("#account-full-name").textContent = newMeta.full_name || "—";
+    $("#account-phone").textContent = newMeta.phone || "—";
+    setMsg("edit-message", "Profile updated.", true);
+    Object.assign(m, newMeta);
+    if (typeof updateAuthUI === "function") updateAuthUI();
+    setTimeout(closeEdit, 700);
+  };
 }
 
 /* =========================================================
