@@ -264,13 +264,13 @@ function toggleWish(id) {
    PRODUCTS DATA
    ========================================================= */
 const PRODUCTS = [
-  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "Gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty.", details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G.", stock: "3" },
-  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "Gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty.", details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable.", stock: "7" },
-  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "Gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.", details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support.", stock: "5" },
-  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "Accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room.", details: "30cm diameter, silent quartz movement, AA battery powered.", stock: "1" },
-  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "Foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready.", details: "A box with different kind of chocolates inside. All-time favorite!", stock: "13" },
-  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box.", details: "Classic combination, irresistible taste.", stock: "22" },
-  { id: "chair1",   name: "Set of Lounge Chairs",     price: 3000, cat: "Furnitures",  img: base + "images/products/chair1.jpg",      tag: "New", desc: "Comfortable, stylish, perfect for any living room.", details: "3-seater, high-density foam cushions, durable fabric upholstery.", stock: "1" },
+  { id: "iphone14", name: "iPhone 14 Pro",  price: 50000, cat: "Gadgets",     img: base + "images/products/Iphone14.jpg",    tag: "Bestseller",    desc: "128GB, factory unlocked, 1-year warranty.", details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G.", stock: 3 },
+  { id: "iphone12", name: "iPhone 12",       price: 28000, cat: "Gadgets",     img: base + "images/products/Iphone12.jpg",   tag: "",              desc: "256GB, factory unlocked, 1-year warranty.", details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable.", stock: 7 },
+  { id: "ipad",     name: "Apple iPad",      price: 22000, cat: "Gadgets",     img: base + "images/products/Ipad.jpg",       tag: "New",           desc: "128GB, 11th Gen(A16 Bionic) with Apple Pencil support.", details: "10.9\" Liquid Retina display, A16 Bionic chip, Apple Pencil (2nd generation) support.", stock: 5 },
+  { id: "clock",    name: "Wall Clock",      price: 200,   cat: "Accessories", img: base + "images/products/Clock.jpg",      tag: "",              desc: "Affordable, modern, durable for any room.", details: "30cm diameter, silent quartz movement, AA battery powered.", stock: 1 },
+  { id: "snickers", name: "Mixed Chocolates Box",    price: 500,    cat: "Foods",       img: base + "images/products/Snickers.jpg",   tag: "Hot",  desc: "A Box of Mixed Chocolates, gift ready.", details: "A box with different kind of chocolates inside. All-time favorite!", stock: 13 },
+  { id: "choco",    name: "Snickers, Dairy Milk Bars", price: 350,   cat: "Foods",       img: base + "images/products/Chocolates.jpg", tag: "",     desc: "Snickers and Dairy Milk Bars selling per box.", details: "Classic combination, irresistible taste.", stock: 22 },
+  { id: "chair1",   name: "Set of Lounge Chairs",     price: 3000,  cat: "Furnitures",  img: base + "images/products/chair1.jpg",     tag: "New",  desc: "Comfortable, stylish, perfect for any living room.", details: "3-seater, high-density foam cushions, durable fabric upholstery.", stock: 1 },
 ];
 
 const CATEGORIES = [
@@ -329,7 +329,7 @@ function renderProducts() {
   $$(".chip", $("#cat-chips")).forEach(b => b.classList.toggle("active", b.dataset.cat === cat));
 
   const list = PRODUCTS.filter(p =>
-    (cat === "all" || p.cat === cat) &&
+    (cat === "all" || p.cat.toLowerCase() === cat) &&
     (!search || p.name.toLowerCase().includes(search) || p.desc.toLowerCase().includes(search))
   );
 
@@ -386,23 +386,30 @@ function renderProductDetail() {
         <h1>${p.name}</h1>
         <div class="pd-price">${peso(p.price)}</div>
         <p class="pd-desc">${p.desc}</p>
+        ${(() => {
+          const inCart = (getCart().find(c => c.id === p.id)?.qty) || 0;
+          const left = Math.max(0, (p.stock ?? 0) - inCart);
+          const out = left <= 0;
+          const dis = out ? "disabled" : "";
+          return `
         <ul class="pd-meta">
-          <li><strong>Availability:</strong>${(() => { const inCart = (getCart().find(c => c.id === p.id)?.qty) || 0; const left = Math.max(0, (p.stock ?? 0) - inCart); return left > 0 ? `${left} / ${p.stock} in stock` : `Out of stock (0 / ${p.stock})`; })()}</li>
+          <li><strong>Availability:</strong> ${out ? `Out of stock (0 / ${p.stock})` : `${left} / ${p.stock} in stock`}</li>
           <li><strong>Category:</strong> ${p.cat}</li>
           <li><strong>Details:</strong> ${p.details || "—"}</li>
         </ul>
         <div class="pd-qty">
           <label>Quantity</label>
           <div class="qty-box">
-            <button data-pd="dec" aria-label="Decrease" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>−</button>
-            <input id="pd-qty-input" type="number" min="1" max="${Math.max(1, ((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)))}" value="1" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>
-            <button data-pd="inc" aria-label="Increase" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>+</button>
+            <button data-pd="dec" aria-label="Decrease" ${dis}>−</button>
+            <input id="pd-qty-input" type="number" min="1" max="${Math.max(1, left)}" value="1" ${dis}>
+            <button data-pd="inc" aria-label="Increase" ${dis}>+</button>
           </div>
         </div>
         <div class="pd-actions">
-          <button class="btn add-cart" data-id="${p.id}" data-qty-from="#pd-qty-input" ${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "disabled" : ""}>${((p.stock ?? 0) - ((getCart().find(c => c.id === p.id)?.qty) || 0)) <= 0 ? "Out of Stock" : "Add to Cart"}</button>
+          <button class="btn add-cart" data-id="${p.id}" data-qty-from="#pd-qty-input" ${dis}>${out ? "Out of Stock" : "Add to Cart"}</button>
           <button class="wish btn btn-outline ${wished?"on":""}" data-id="${p.id}">${wished?"♥ Wishlisted":"♡ Wishlist"}</button>
-        </div>
+        </div>`;
+        })()}
       </div>
     </div>
   `;
@@ -444,6 +451,29 @@ const getDisplayName = (u) => {
   return m.username || m.full_name || (u?.email ? u.email.split("@")[0] : "Account");
 };
 
+function bindPasswordHint(inputId, hintId) {
+  const pw = $("#" + inputId);
+  if (!pw) return;
+  pw.addEventListener("input", () => {
+    const v = pw.value;
+    const hint = $("#" + hintId);
+    if (!hint) return;
+    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
+    if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
+    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
+  });
+}
+
+function wireGoogleOAuth(btnId, msgId) {
+  $("#" + btnId)?.addEventListener("click", async () => {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: location.origin + "/pages/login.html" }
+    });
+    if (error) setMsg(msgId, error.message);
+  });
+}
+
 async function updateAuthUI() {
   if (!sb) return;
   const { data } = await sb.auth.getSession();
@@ -467,19 +497,12 @@ async function updateAuthUI() {
   };
 
   // redirect away from login/register if logged in
-  if ((PAGE_KEY === "login" || PAGE_KEY === "register") && !location.hash.includes("recovery") && !location.hash.includes("type=recovery")) location.href = home();
+  if ((PAGE_KEY === "login" || PAGE_KEY === "register") && !location.hash.includes("type=recovery")) location.href = home();
 }
 
 function bindRegister() {
   const f = $("#register-form"); if (!f || !sb) return;
-  const pw = $("#password");
-  if (pw) pw.addEventListener("input", () => {
-    const v = pw.value;
-    const hint = $("#password-hint");
-    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
-    if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
-    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
-  });
+  bindPasswordHint("password", "password-hint");
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = $("#username").value.trim();
@@ -499,13 +522,7 @@ function bindRegister() {
     if (data.session) setTimeout(() => location.href = home(), 1200);
   });
 
-  $("#google-register")?.addEventListener("click", async () => {
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: location.origin + "/pages/login.html" }
-    });
-    if (error) setMsg("form-message", error.message);
-  });
+  wireGoogleOAuth("google-register", "form-message");
 }
 
 function bindLogin() {
@@ -520,15 +537,9 @@ function bindLogin() {
     setMsg("login-message", "Login successful. Redirecting...", true);
     setTimeout(() => location.href = home(), 900);
   });
-  $("#google-login")?.addEventListener("click", async () => {
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: location.origin + "/pages/login.html" }
-    });
-    if (error) setMsg("login-message", error.message);
-   });
-     // Forgot password flow
-     
+  wireGoogleOAuth("google-login", "login-message");
+
+  // Forgot password flow
   const forgotLink = $("#forgot-password-link");
   const forgotForm = $("#forgot-form");
   const cancelForgot = $("#cancel-forgot-btn");
@@ -558,14 +569,7 @@ function bindLogin() {
 
 function bindResetPassword() {
   const f = $("#reset-form"); if (!f || !sb) return;
-  const pw = $("#reset-password");
-  if (pw) pw.addEventListener("input", () => {
-    const v = pw.value;
-    const hint = $("#reset-password-hint");
-    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
-    if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
-    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
-  });
+  bindPasswordHint("reset-password", "reset-password-hint");
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
     const password = $("#reset-password").value;
@@ -585,14 +589,7 @@ function bindResetPassword() {
 
 function bindChangePassword() {
   const f = $("#password-form"); if (!f || !sb) return;
-  const pw = $("#new-password");
-  if (pw) pw.addEventListener("input", () => {
-    const v = pw.value;
-    const hint = $("#new-password-hint");
-    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
-    if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
-    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
-  });
+  bindPasswordHint("new-password", "new-password-hint");
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
     const password = $("#new-password").value;
@@ -697,7 +694,7 @@ function wireEvents() {
         qty = Math.max(1, parseInt(inp?.value, 10) || 1);
       }
       for (let i = 0; i < qty; i++) {
-       if (!addToCart({ id: p.id, name: p.name, price: p.price, img: p.img })) break;
+        if (!addToCart({ id: p.id, name: p.name, price: p.price, img: p.img })) break;
       }
       return;
     }
