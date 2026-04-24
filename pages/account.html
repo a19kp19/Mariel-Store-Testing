@@ -58,6 +58,27 @@
         <p id="edit-message" class="form-msg"></p>
       </form>
     </div>
+    
+    <div class="account-card" style="margin-top:24px">
+      <div class="account-head">
+        <h2>Change <em>Password</em></h2>
+      </div>
+      <form id="password-form" novalidate>
+        <div class="field">
+          <label for="new-password">New Password</label>
+          <input type="password" id="new-password" required>
+          <p id="new-password-hint" class="hint">Use uppercase, lowercase, number, and a special character.</p>
+        </div>
+        <div class="field">
+          <label for="confirm-new-password">Confirm New Password</label>
+          <input type="password" id="confirm-new-password" required>
+        </div>
+        <div class="row">
+          <button type="submit" class="btn">Update Password</button>
+        </div>
+        <p id="password-message" class="form-msg"></p>
+      </form>
+    </div>
   </div>
 </section>
 
