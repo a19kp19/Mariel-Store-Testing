@@ -92,7 +92,7 @@ function buildHeader() {
         </a>
         <nav class="nav-links">${links}</nav>
         <div class="nav-actions">
-          <button class="cart-btn" id="open-cart" aria-label="Open cart">
+          <button class="btn-icon" id="open-cart" aria-label="Open cart">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h7.6a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
             <span class="badge" id="cart-count">0</span>
           </button>
@@ -103,10 +103,9 @@ function buildHeader() {
           </span>
 
           <div class="user-menu hidden" id="user-menu">
-            <button class="user-toggle" id="user-toggle">
-              <span class="user-avatar" id="user-avatar">A</span>
-              <span class="user-name" id="user-name">Account</span>
-              <span class="caret">▾</span>
+            <button class="user-trigger" id="user-toggle" aria-label="Account menu">
+              <span class="avatar" id="user-avatar">A</span>
+              <span id="user-name">Account</span>
             </button>
             <div class="user-dropdown" id="user-dropdown">
               <a href="${pagePath("account.html")}">My Account</a>
@@ -127,20 +126,19 @@ function buildHeader() {
 
 function buildFooter() {
   const year = new Date().getFullYear();
-  const slot = document.body;
-  if (slot.querySelector(".site-footer")) return;
+  if (document.querySelector(".site-footer")) return;
   const f = document.createElement("footer");
   f.className = "site-footer";
   f.innerHTML = `
     <div class="container footer-grid">
-      <div>
+      <div class="footer-col">
         <a class="brand" href="${home()}">
           <img src="${base}images/logo.png" alt="Mariel Store">
           <span>Mariel Store</span>
         </a>
-        <p class="muted" style="margin-top:10px">Affordable, reliable shopping across the Philippines.</p>
+        <p style="margin-top:10px">Affordable, reliable shopping across the Philippines.</p>
       </div>
-      <div>
+      <div class="footer-col">
         <h4>Shop</h4>
         <ul>
           <li><a href="${pagePath("products.html")}">All Products</a></li>
@@ -149,7 +147,7 @@ function buildFooter() {
           <li><a href="${pagePath("products.html")}?cat=foods">Foods</a></li>
         </ul>
       </div>
-      <div>
+      <div class="footer-col">
         <h4>Company</h4>
         <ul>
           <li><a href="${pagePath("about.html")}">About</a></li>
@@ -157,7 +155,7 @@ function buildFooter() {
           <li><a href="${pagePath("contact.html")}">Contact</a></li>
         </ul>
       </div>
-      <div>
+      <div class="footer-col">
         <h4>Help</h4>
         <ul>
           <li><a href="${pagePath("orders.html")}">My Orders</a></li>
@@ -169,7 +167,9 @@ function buildFooter() {
       <span>© ${year} Mariel Store. All rights reserved.</span>
     </div>
   `;
-  slot.appendChild(f);
+  const slot = document.getElementById("site-footer");
+  if (slot) slot.replaceWith(f);
+  else document.body.appendChild(f);
 }
 
 function buildOverlays() {
@@ -424,28 +424,29 @@ function renderProductDetail() {
   }
 
   const wished = getWish().includes(p.id);
-  const stockLine = p.stock > 0
-    ? `<span class="stock-pill in-stock">${p.stock} in stock</span>`
-    : `<span class="stock-pill out-stock">Out of stock</span>`;
+  const stockColor = p.stock > 0 ? "var(--ok,#16a34a)" : "var(--brand)";
+  const stockText = p.stock > 0 ? `${p.stock} in stock` : "Out of stock";
+  const stockLine = `<span style="display:inline-block;margin-left:10px;padding:3px 10px;border-radius:999px;background:${stockColor};color:#fff;font-size:.75rem;font-weight:600;vertical-align:middle">${stockText}</span>`;
 
   host.innerHTML = `
-    <div class="pd-grid">
+    <p class="crumbs"><a href="${pagePath("products.html")}">Products</a> / <span>${escapeHtml(p.name)}</span></p>
+    <div class="product-detail">
       <div class="pd-media">
         ${p.tag ? `<span class="tag">${p.tag}</span>` : ""}
         <img src="${p.img}" alt="${escapeHtml(p.name)}">
       </div>
-      <div class="pd-body">
-        <span class="cat-label">${escapeHtml(p.cat)}</span>
+      <div class="pd-info">
+        <span class="eyebrow">${escapeHtml(p.cat)}</span>
         <h1>${escapeHtml(p.name)}</h1>
-        <div class="pd-price">${peso(p.price)} ${stockLine}</div>
-        <p class="lead">${escapeHtml(p.desc)}</p>
-        ${p.details ? `<p class="muted">${escapeHtml(p.details)}</p>` : ""}
+        <div class="pd-price">${peso(p.price)}${stockLine}</div>
+        <p class="pd-desc">${escapeHtml(p.desc)}</p>
+        ${p.details ? `<ul class="pd-meta"><li><strong>Details:</strong> ${escapeHtml(p.details)}</li></ul>` : ""}
         <div class="pd-qty">
           <label for="pd-qty-input">Quantity</label>
-          <div class="qty-stepper">
-            <button data-pd="dec" aria-label="Decrease">−</button>
+          <div class="qty-box">
+            <button type="button" data-pd="dec" aria-label="Decrease">−</button>
             <input id="pd-qty-input" type="number" value="1" min="1" max="${p.stock || 1}">
-            <button data-pd="inc" aria-label="Increase">+</button>
+            <button type="button" data-pd="inc" aria-label="Increase">+</button>
           </div>
         </div>
         <div class="pd-actions">
@@ -457,6 +458,13 @@ function renderProductDetail() {
       </div>
     </div>
   `;
+
+  const relatedHost = $("#related-grid");
+  if (relatedHost) {
+    const related = getProducts().filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
+    if (related.length) relatedHost.innerHTML = related.map(productCard).join("");
+    else relatedHost.closest("section")?.classList.add("hidden");
+  }
 }
 
 /* =========================================================
@@ -464,9 +472,9 @@ function renderProductDetail() {
    ========================================================= */
 function setupReveal() {
   const els = $$(".reveal");
-  if (!("IntersectionObserver" in window)) { els.forEach(e => e.classList.add("show")); return; }
+  if (!("IntersectionObserver" in window)) { els.forEach(e => e.classList.add("in")); return; }
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("show"); io.unobserve(e.target); } });
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
   }, { threshold: 0.12 });
   els.forEach(e => io.observe(e));
 }
