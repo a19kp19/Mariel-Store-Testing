@@ -176,21 +176,24 @@ function buildOverlays() {
   if ($("#scrim")) return;
   const div = document.createElement("div");
   div.innerHTML = `
-    <div id="scrim"></div>
-    <aside id="cart-drawer" aria-label="Cart">
-      <div class="cart-head">
+    <div id="scrim" class="scrim"></div>
+    <aside id="cart-drawer" class="drawer" aria-label="Cart">
+      <div class="drawer-head">
         <h3>Your Cart</h3>
-        <button id="close-cart" aria-label="Close">✕</button>
+        <button id="close-cart" class="close" aria-label="Close">✕</button>
       </div>
-      <div id="cart-items"></div>
-      <div class="cart-foot">
-        <div class="cart-total"><span>Total</span><strong id="cart-total">₱0.00</strong></div>
+      <div id="cart-items" class="drawer-body"></div>
+      <div class="drawer-foot">
+        <div class="total"><span>Total</span><strong id="cart-total" class="amt">₱0.00</strong></div>
         <button class="btn btn-block" id="checkout-btn">Checkout</button>
       </div>
     </aside>
-    <nav id="mobile-nav" aria-label="Mobile">
-      <button id="menu-close" aria-label="Close menu">✕</button>
-      ${NAV_ITEMS.map(i => `<a href="${i.href}">${i.label}</a>`).join("")}
+    <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile">
+      <div class="top">
+        <span class="brand-mini">Menu</span>
+        <button id="menu-close" class="close" aria-label="Close menu">✕</button>
+      </div>
+      ${NAV_ITEMS.map(i => `<a href="${i.href}"${i.key === PAGE_KEY ? ' class="active"' : ""}>${i.label}</a>`).join("")}
     </nav>
     <div id="toast" class="toast"></div>
   `;
@@ -252,17 +255,17 @@ function renderCart() {
   list.innerHTML = cart.map(i => `
     <div class="cart-item">
       <img src="${i.img}" alt="">
-      <div class="ci-body">
-        <div class="ci-name">${escapeHtml(i.name)}</div>
-        <div class="ci-price">${peso(i.price)}</div>
+      <div>
+        <div class="name">${escapeHtml(i.name)}</div>
+        <div class="price">${peso(i.price)}</div>
         <div class="qty">
           <button data-act="dec" data-id="${i.id}">−</button>
           <span>${i.qty}</span>
           <button data-act="inc" data-id="${i.id}">+</button>
-          <button class="rm" data-act="rm" data-id="${i.id}" title="Remove">✕</button>
         </div>
+        <button class="remove" data-act="rm" data-id="${i.id}">Remove</button>
       </div>
-      <div class="ci-total">${peso(i.price * i.qty)}</div>
+      <div class="line-total">${peso(i.price * i.qty)}</div>
     </div>
   `).join("");
   total.textContent = peso(cart.reduce((s, i) => s + i.price * i.qty, 0));
