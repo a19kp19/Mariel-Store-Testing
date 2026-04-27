@@ -195,7 +195,7 @@ function buildOverlays() {
       </div>
       ${NAV_ITEMS.map(i => `<a href="${i.href}"${i.key === PAGE_KEY ? ' class="active"' : ""}>${i.label}</a>`).join("")}
     </nav>
-    <div id="toast" class="toast"></div>
+    <div id="toast-stack" class="toast-stack"></div>
   `;
   document.body.appendChild(div);
 }
@@ -204,11 +204,12 @@ function buildOverlays() {
    TOAST
    ========================================================= */
 function toast(msg, type = "") {
-  const el = $("#toast"); if (!el) return alert(msg);
+  const stack = $("#toast-stack"); if (!stack) return alert(msg);
+  const el = document.createElement("div");
+  el.className = "toast " + type;
   el.textContent = msg;
-  el.className = "toast show " + type;
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.className = "toast", 1800);
+  stack.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
 }
 
 /* =========================================================
