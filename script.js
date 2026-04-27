@@ -462,7 +462,7 @@ function renderProductDetail() {
 
   const relatedHost = $("#related-grid");
   if (relatedHost) {
-    const related = getProducts().filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
+    const related = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4);
     if (related.length) relatedHost.innerHTML = related.map(productCard).join("");
     else relatedHost.closest("section")?.classList.add("hidden");
   }
