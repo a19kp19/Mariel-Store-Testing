@@ -1,11 +1,8 @@
-/* =========================================================
-   Mariel Store — STATIC version (no backend)
+/*   Mariel Store — STATIC version (no backend)
    - Header & footer injected
    - Cart, wishlist, orders, addresses, accounts persist in
      the browser via localStorage
-   - "Auth" is a local demo (passwords stored in localStorage)
-     => fine for a school project, NOT real security
-   ========================================================= */
+   - "Auth" is a local demo (passwords stored in localStorage) */
 
 /* ---------- helpers ---------- */
 const $  = (s, r = document) => r.querySelector(s);
@@ -483,7 +480,9 @@ function setupReveal() {
 /* =========================================================
    AUTH (local — uses localStorage; demo only)
    ========================================================= */
-const isStrong = (p) => /[A-Z]/.test(p) && /[a-z]/.test(p) && /[0-9]/.test(p) && /[^A-Za-z0-9]/.test(p);
+const isStrong = (p) => p.length >= 6 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /[0-9]/.test(p) && /[^A-Za-z0-9]/.test(p);
+const isLettersOnly = (s) => /^[A-Za-z]+$/.test(s);
+const isLettersAndSpaces = (s) => /^[A-Za-z\s]+$/.test(s);
 const setMsg = (id, msg, ok = false) => {
   const el = document.getElementById(id);
   if (!el) return;
@@ -498,9 +497,9 @@ function bindPasswordHint(inputId, hintId) {
     const v = pw.value;
     const hint = $("#" + hintId);
     if (!hint) return;
-    if (!v) { hint.className = "hint"; hint.textContent = "Use uppercase, lowercase, number, and a special character."; return; }
+    if (!v) { hint.className = "hint"; hint.textContent = "Min. 6 characters with uppercase, lowercase, number, and special character."; return; }
     if (isStrong(v)) { hint.className = "hint ok"; hint.textContent = "Strong password ✓"; }
-    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, and special character."; }
+    else { hint.className = "hint bad"; hint.textContent = "Add uppercase, lowercase, number, special character (min. 6 chars)."; }
   });
 }
 
@@ -543,6 +542,23 @@ function bindRegister() {
   const f = $("#register-form"); if (!f) return;
   bindPasswordHint("password", "password-hint");
   hideGoogleButton("google-register", "form-message");
+
+  // Restrict username to letters only (real-time)
+  const usernameInput = $("#username");
+  if (usernameInput) {
+    usernameInput.addEventListener("input", () => {
+      usernameInput.value = usernameInput.value.replace(/[^A-Za-z]/g, "");
+    });
+  }
+
+  // Restrict full name to letters and spaces only (real-time)
+  const fullNameInput = $("#full-name");
+  if (fullNameInput) {
+    fullNameInput.addEventListener("input", () => {
+      fullNameInput.value = fullNameInput.value.replace(/[^A-Za-z ]/g, "");
+    });
+  }
+
   f.addEventListener("submit", (e) => {
     e.preventDefault();
     const username = $("#username").value.trim();
@@ -552,7 +568,9 @@ function bindRegister() {
     const confirm  = $("#confirm-password").value;
     setMsg("form-message", "");
     if (!username || !fullName || !email) return setMsg("form-message", "Please fill in all required fields.");
-    if (!isStrong(password)) return setMsg("form-message", "Password is too weak.");
+    if (!isLettersOnly(username)) return setMsg("form-message", "Username must contain letters only.");
+    if (!isLettersAndSpaces(fullName)) return setMsg("form-message", "Full name must contain letters only.");
+    if (!isStrong(password)) return setMsg("form-message", "Password must be at least 6 characters.");
     if (password !== confirm) return setMsg("form-message", "Passwords do not match.");
 
     const users = getUsers();
@@ -626,7 +644,7 @@ function bindResetPassword() {
     const password = $("#reset-password").value;
     const confirm  = $("#reset-confirm").value;
     setMsg("reset-message", "");
-    if (!isStrong(password)) return setMsg("reset-message", "Password is too weak.");
+    if (!isStrong(password)) return setMsg("reset-message", "Password must be at least 6 characters.");
     if (password !== confirm) return setMsg("reset-message", "Passwords do not match.");
     if (!emailParam) return setMsg("reset-message", "Missing email — request a reset from the login page.");
     const users = getUsers();
@@ -648,7 +666,7 @@ function bindChangePassword() {
     const password = $("#new-password").value;
     const confirm  = $("#confirm-new-password").value;
     setMsg("password-message", "");
-    if (!isStrong(password)) return setMsg("password-message", "Password is too weak.");
+    if (!isStrong(password)) return setMsg("password-message", "Password must be at least 6 characters.");
     if (password !== confirm) return setMsg("password-message", "Passwords do not match.");
     const u = currentUser();
     if (!u) return setMsg("password-message", "Please log in first.");
