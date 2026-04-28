@@ -1,8 +1,11 @@
-/*   Mariel Store — STATIC version (no backend)
+/* =========================================================
+   Mariel Store — STATIC version (no backend)
    - Header & footer injected
    - Cart, wishlist, orders, addresses, accounts persist in
      the browser via localStorage
-   - "Auth" is a local demo (passwords stored in localStorage) */
+   - "Auth" is a local demo (passwords stored in localStorage)
+     => fine for a school project, NOT real security
+   ========================================================= */
 
 /* ---------- helpers ---------- */
 const $  = (s, r = document) => r.querySelector(s);
@@ -1028,7 +1031,7 @@ function bindAddresses() {
           <div class="muted" style="font-size:.88rem">${escapeHtml(a.phone)}</div>
           <div style="margin-top:6px">${escapeHtml(a.address_line)}</div>
           <div class="muted" style="font-size:.88rem">${escapeHtml(a.city)}, ${escapeHtml(a.province)}${a.postal_code ? " · " + escapeHtml(a.postal_code) : ""}</div>
-          <div class="muted" style="font-size:.85rem">${escapeHtml(REGION_LABELS[a.region] || a.region)}</div>
+          <div class="muted" style="font-size:.85rem">${escapeHtml(getRegionLabel(a.region))}</div>
         </div>
         <div class="addr-card-actions">
           ${a.is_default ? "" : `<button class="btn btn-outline btn-sm" data-addr="default" data-id="${a.id}">Set Default</button>`}
@@ -1106,7 +1109,17 @@ function bindAddresses() {
    CHECKOUT PAGE
    ========================================================= */
 const SHIPPING_FEES  = { ncr: 100, luzon: 180, visayas: 220, mindanao: 250 };
-const REGION_LABELS  = { ncr: "Metro Manila (NCR)", luzon: "Luzon (outside NCR)", visayas: "Visayas", mindanao: "Mindanao" };
+function getRegionLabel(key) {
+  const r = (typeof PH_REGIONS !== "undefined") ? PH_REGIONS.find(x => x.key === key) : null;
+  const legacy = { ncr: "Metro Manila (NCR)", luzon: "Luzon (outside NCR)", visayas: "Visayas", mindanao: "Mindanao" };
+  return r ? r.label : (legacy[key] || key);
+}
+function getShippingFee(regionKey) {
+  const r = (typeof PH_REGIONS !== "undefined") ? PH_REGIONS.find(x => x.key === regionKey) : null;
+  const legacy = { ncr: "ncr", luzon: "luzon", visayas: "visayas", mindanao: "mindanao" };
+  const tier = r ? r.shipping : (legacy[regionKey] || null);
+  return tier ? SHIPPING_FEES[tier] : null;
+}
 const PAYMENT_LABELS = { cod: "Cash on Delivery", online: "Online Payment", installment: "Installment" };
 
 function bindCheckout() {
@@ -1135,14 +1148,71 @@ function bindCheckout() {
   const savedAddresses = fetchUserAddresses();
   let activePickedAddrId = null;
 
+  // --- Philippine cascading address helpers ---
+  function buildRegionDropdown() {
+    const sel = $("#co-region");
+    PH_REGIONS.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.key;
+      opt.textContent = r.label;
+      sel.appendChild(opt);
+    });
+  }
+
+  function buildProvinceDropdown(regionKey) {
+    const sel = $("#co-province");
+    sel.innerHTML = '<option value="">Select province…</option>';
+    const provinces = PH_PROVINCES[regionKey] || [];
+    provinces.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.key;
+      opt.textContent = p.label;
+      sel.appendChild(opt);
+    });
+    sel.disabled = !provinces.length;
+    // Reset city when province changes
+    const citySel = $("#co-city");
+    citySel.innerHTML = '<option value="">Select city / municipality…</option>';
+    citySel.disabled = true;
+    $("#co-postal").value = "";
+  }
+
+  function buildCityDropdown(provinceKey) {
+    const sel = $("#co-city");
+    sel.innerHTML = '<option value="">Select city / municipality…</option>';
+    const cities = PH_CITIES[provinceKey] || [];
+    cities.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.name;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+    sel.disabled = !cities.length;
+    $("#co-postal").value = "";
+  }
+
+  buildRegionDropdown();
+
   function fillFromAddress(a) {
     $("#co-name").value     = a.full_name;
     $("#co-phone").value    = a.phone;
     $("#co-address").value  = a.address_line;
-    $("#co-city").value     = a.city;
-    $("#co-province").value = a.province;
-    $("#co-region").value   = a.region;
-    $("#co-postal").value   = a.postal_code || "";
+    // Cascade: region → province → city → postal
+    const regionKey   = a.region   || "";
+    const provinceKey = a.province || "";
+    const cityName    = a.city     || "";
+    $("#co-region").value = regionKey;
+    buildProvinceDropdown(regionKey);
+    if (provinceKey) {
+      $("#co-province").value = provinceKey;
+      buildCityDropdown(provinceKey);
+      if (cityName) {
+        $("#co-city").value = cityName;
+        const cities = PH_CITIES[provinceKey] || [];
+        const cityData = cities.find(c => c.name === cityName);
+        $("#co-postal").value = cityData ? cityData.postal : (a.postal_code || "");
+      }
+    }
     activePickedAddrId = a.id;
     recomputeTotals();
     refreshSaveCheckbox();
@@ -1182,7 +1252,9 @@ function bindCheckout() {
         c.classList.add("active");
         if (c.dataset.new) {
           activePickedAddrId = null;
-          ["co-address","co-city","co-province","co-region","co-postal"].forEach(id => $("#" + id).value = "");
+          ["co-address","co-region","co-postal"].forEach(id => $("#" + id).value = "");
+          buildProvinceDropdown("");
+          buildCityDropdown("");
           refreshSaveCheckbox();
           recomputeTotals();
           return;
@@ -1214,8 +1286,8 @@ function bindCheckout() {
   function recomputeTotals() {
     const list = getCart();
     const subtotal = list.reduce((s, i) => s + i.price * i.qty, 0);
-    const region = $("#co-region").value;
-    const shipping = SHIPPING_FEES[region];
+    const regionKey = $("#co-region").value;
+    const shipping = getShippingFee(regionKey);
     $("#co-subtotal").textContent = peso(subtotal);
     $("#co-shipping").textContent = shipping == null ? "—" : peso(shipping);
     $("#co-total").textContent = peso(subtotal + (shipping || 0));
@@ -1223,7 +1295,22 @@ function bindCheckout() {
 
   renderItems();
   recomputeTotals();
-  $("#co-region").addEventListener("change", recomputeTotals);
+
+  // Cascading dropdown event listeners
+  $("#co-region").addEventListener("change", () => {
+    buildProvinceDropdown($("#co-region").value);
+    recomputeTotals();
+  });
+  $("#co-province").addEventListener("change", () => {
+    buildCityDropdown($("#co-province").value);
+  });
+  $("#co-city").addEventListener("change", () => {
+    const provinceKey = $("#co-province").value;
+    const cityName = $("#co-city").value;
+    const cities = PH_CITIES[provinceKey] || [];
+    const cityData = cities.find(c => c.name === cityName);
+    $("#co-postal").value = cityData ? cityData.postal : "";
+  });
 
   $("#checkout-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -1234,12 +1321,14 @@ function bindCheckout() {
 
     const region = $("#co-region").value;
     if (!region) return setMsg("checkout-message", "Please select your region.");
-    const shipping_fee = SHIPPING_FEES[region];
+    if (!$("#co-province").value) return setMsg("checkout-message", "Please select your province.");
+    if (!$("#co-city").value) return setMsg("checkout-message", "Please select your city / municipality.");
+    const shipping_fee = getShippingFee(region);
     const subtotal = list.reduce((s, i) => s + i.price * i.qty, 0);
     const total = subtotal + shipping_fee;
     const payment_method = document.querySelector('input[name="co-pay"]:checked')?.value || "cod";
 
-    const required = ["co-name","co-phone","co-address","co-city","co-province"];
+    const required = ["co-name","co-phone","co-address"];
     for (const id of required) {
       if (!$("#" + id).value.trim()) {
         return setMsg("checkout-message", "Please fill in all required fields.");
@@ -1264,7 +1353,12 @@ function bindCheckout() {
       email:        $("#co-email").value.trim(),
       address_line: $("#co-address").value.trim(),
       city:         $("#co-city").value.trim(),
-      province:     $("#co-province").value.trim(),
+      province:     (() => {
+        const pKey = $("#co-province").value;
+        const rKey = $("#co-region").value;
+        const prov = (PH_PROVINCES[rKey] || []).find(p => p.key === pKey);
+        return prov ? prov.label : pKey;
+      })(),
       region,
       postal_code:  $("#co-postal").value.trim(),
       notes:        $("#co-notes").value.trim(),
@@ -1298,7 +1392,7 @@ function bindCheckout() {
         phone:        order.phone,
         address_line: order.address_line,
         city:         order.city,
-        province:     order.province,
+        province:     $("#co-province").value,
         region:       order.region,
         postal_code:  order.postal_code || "",
         is_default:   all.length === 0,
@@ -1441,7 +1535,7 @@ function renderOrderDetail(host, orderId, isNew, u) {
         <p class="muted" style="margin:10px 0 0">
           ${escapeHtml(order.address_line)}<br>
           ${escapeHtml(order.city)}, ${escapeHtml(order.province)}<br>
-          ${escapeHtml(REGION_LABELS[order.region] || order.region)}${order.postal_code ? ` · ${escapeHtml(order.postal_code)}` : ""}
+          ${escapeHtml(getRegionLabel(order.region))}${order.postal_code ? ` · ${escapeHtml(order.postal_code)}` : ""}
         </p>
         ${order.notes ? `<p class="muted" style="margin-top:10px"><strong>Notes:</strong> ${escapeHtml(order.notes)}</p>` : ""}
 
