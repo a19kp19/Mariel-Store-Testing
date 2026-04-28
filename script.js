@@ -1,13 +1,39 @@
 /* =========================================================
    Mariel Store — STATIC version (no backend)
-   - Header & footer injected
-   - Cart, wishlist, orders, addresses, accounts persist in
-     the browser via localStorage
+   ---------------------------------------------------------
+   What this file does, top to bottom (search the headers):
+
+     1.  HELPERS              $, $$, peso, uid, escapeHtml, setVisibleState
+     2.  LOCAL STORAGE STORE  LS keys + readJSON / writeJSON
+     3.  AUTH HELPERS         getUsers, currentUser, signIn/Out
+     4.  PAGE & NAV           buildHeader / buildFooter / buildOverlays
+     5.  TOAST                tiny notification
+     6.  CART                 add / change / remove / render
+     7.  WISHLIST             toggleWish
+     8.  PRODUCTS             DEFAULT_PRODUCTS, productCard, render*
+     9.  PRODUCT DETAIL       renderProductDetail
+     10. REVEAL ON SCROLL     setupReveal
+     11. AUTH FORMS           bindRegister / bindLogin / etc.
+     12. ACCOUNT              loadAccount + bindAccountEdit
+     13. ADMIN                bindAdmin (CRUD products)
+     14. GLOBAL EVENT WIRING  wireEvents — single delegated listener
+     15. ADDRESSES            bindAddresses (CRUD saved addresses)
+     16. CHECKOUT             bindCheckout (PH cascading dropdowns)
+     17. ORDERS               bindOrders + renderOrderList/Detail
+     18. INIT                 DOMContentLoaded → calls every binder
+
+   Conventions:
+   - All persistence goes through readJSON/writeJSON + LS.* keys.
+   - All DOM lookups go through $ / $$ helpers.
+   - User-controlled strings rendered into HTML go through
+     escapeHtml() to prevent broken markup / XSS.
    - "Auth" is a local demo (passwords stored in localStorage)
-     => fine for a school project, NOT real security
+     => fine for a school project, NOT real security.
    ========================================================= */
 
-/* ---------- helpers ---------- */
+/* =========================================================
+   1. HELPERS
+   ========================================================= */
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const onPagesPath = () => location.pathname.includes("/pages/");
@@ -16,6 +42,23 @@ const pagePath = (file) => onPagesPath() ? file : `pages/${file}`;
 const home = () => onPagesPath() ? "../index.html" : "index.html";
 const peso = (n) => "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const uid  = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+/* Show exactly one of several "state" elements and hide the rest.
+   Replaces the loading/denied/empty/ok pattern repeated by admin,
+   checkout and orders pages. Pass a map of { stateName: element-or-id }
+   then call with the active state name. Missing entries are skipped. */
+function setVisibleState(map, active) {
+  for (const [name, target] of Object.entries(map)) {
+    const el = typeof target === "string" ? document.getElementById(target) : target;
+    el?.classList.toggle("hidden", name !== active);
+  }
+}
+
+/* Escape HTML for safe interpolation into innerHTML / attributes. */
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+const escapeAttr = escapeHtml; // alias kept for readability at call sites
 
 /* =========================================================
    LOCAL STORAGE STORE
@@ -425,9 +468,9 @@ function renderProductDetail() {
   }
 
   const wished = getWish().includes(p.id);
-  const stockColor = p.stock > 0 ? "var(--ok,#16a34a)" : "var(--brand)";
   const stockText = p.stock > 0 ? `${p.stock} in stock` : "Out of stock";
-  const stockLine = `<span style="display:inline-block;margin-left:10px;padding:3px 10px;border-radius:999px;background:${stockColor};color:#fff;font-size:.75rem;font-weight:600;vertical-align:middle">${stockText}</span>`;
+  const stockClass = p.stock > 0 ? "stock-pill in" : "stock-pill out";
+  const stockLine = `<span class="${stockClass}">${stockText}</span>`;
 
   host.innerHTML = `
     <p class="crumbs"><a href="${pagePath("products.html")}">Products</a> / <span>${escapeHtml(p.name)}</span></p>
@@ -758,18 +801,12 @@ function bindAdmin() {
   const app = $("#admin-app");
   if (!app) return;
 
-  const loading = $("#admin-loading");
-  const denied = $("#admin-denied");
-  const showState = (state) => {
-    loading?.classList.toggle("hidden", state !== "loading");
-    denied?.classList.toggle("hidden", state !== "denied");
-    app.classList.toggle("hidden", state !== "ok");
-  };
+  const adminStates = { loading: "admin-loading", denied: "admin-denied", ok: app };
 
   const u = currentUser();
   if (!u) { location.href = pagePath("login.html"); return; }
-  if (!u.is_admin) { showState("denied"); return; }
-  showState("ok");
+  if (!u.is_admin) { setVisibleState(adminStates, "denied"); return; }
+  setVisibleState(adminStates, "ok");
 
   const form = $("#admin-product-form");
   const titleEl = $("#admin-form-title");
@@ -889,10 +926,8 @@ function bindAdmin() {
   refreshTable();
 }
 
-function escapeHtml(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-}
-function escapeAttr(s) { return escapeHtml(s); }
+/* escapeHtml / escapeAttr are defined once at the top of this file
+   (in the HELPERS section). Don't redefine them here. */
 
 /* =========================================================
    GLOBAL EVENT WIRING
@@ -1108,16 +1143,33 @@ function bindAddresses() {
 /* =========================================================
    CHECKOUT PAGE
    ========================================================= */
-const SHIPPING_FEES  = { ncr: 100, luzon: 180, visayas: 220, mindanao: 250 };
+const SHIPPING_FEES = { ncr: 100, luzon: 180, visayas: 220, mindanao: 250 };
+
+/* Legacy fallback used when ph-address.js is NOT loaded on a page
+   (it only ships with checkout.html — accounts/orders also display
+   region info, so they need a sensible default). */
+const LEGACY_REGIONS = {
+  ncr:      { label: "Metro Manila (NCR)",   shipping: "ncr" },
+  luzon:    { label: "Luzon (outside NCR)",  shipping: "luzon" },
+  visayas:  { label: "Visayas",              shipping: "visayas" },
+  mindanao: { label: "Mindanao",             shipping: "mindanao" },
+};
+
+/* Look up a region by key. Returns { label, shipping } or null.
+   Single source of truth used by getRegionLabel + getShippingFee. */
+function findRegion(key) {
+  if (typeof PH_REGIONS !== "undefined") {
+    const r = PH_REGIONS.find(x => x.key === key);
+    if (r) return r;
+  }
+  return LEGACY_REGIONS[key] || null;
+}
+
 function getRegionLabel(key) {
-  const r = (typeof PH_REGIONS !== "undefined") ? PH_REGIONS.find(x => x.key === key) : null;
-  const legacy = { ncr: "Metro Manila (NCR)", luzon: "Luzon (outside NCR)", visayas: "Visayas", mindanao: "Mindanao" };
-  return r ? r.label : (legacy[key] || key);
+  return findRegion(key)?.label || key;
 }
 function getShippingFee(regionKey) {
-  const r = (typeof PH_REGIONS !== "undefined") ? PH_REGIONS.find(x => x.key === regionKey) : null;
-  const legacy = { ncr: "ncr", luzon: "luzon", visayas: "visayas", mindanao: "mindanao" };
-  const tier = r ? r.shipping : (legacy[regionKey] || null);
+  const tier = findRegion(regionKey)?.shipping;
   return tier ? SHIPPING_FEES[tier] : null;
 }
 const PAYMENT_LABELS = { cod: "Cash on Delivery", online: "Online Payment", installment: "Installment" };
@@ -1126,20 +1178,14 @@ function bindCheckout() {
   const app = $("#checkout-app");
   if (!app) return;
 
-  const loading = $("#checkout-loading");
-  const empty = $("#checkout-empty");
-  const showState = (s) => {
-    loading?.classList.toggle("hidden", s !== "loading");
-    empty?.classList.toggle("hidden", s !== "empty");
-    app.classList.toggle("hidden", s !== "ok");
-  };
+  const checkoutStates = { loading: "checkout-loading", empty: "checkout-empty", ok: app };
 
   const u = currentUser();
   if (!u) { location.href = pagePath("login.html"); return; }
 
   const cart = getCart();
-  if (!cart.length) { showState("empty"); return; }
-  showState("ok");
+  if (!cart.length) { setVisibleState(checkoutStates, "empty"); return; }
+  setVisibleState(checkoutStates, "ok");
 
   $("#co-name").value  = u.full_name || "";
   $("#co-phone").value = u.phone || "";
@@ -1419,18 +1465,16 @@ function statusPill(status) {
 
 function bindOrders() {
   const host = $("#orders-content");
-  const loading = $("#orders-loading");
   if (!host) return;
 
   const u = currentUser();
   if (!u) { location.href = pagePath("login.html"); return; }
 
+  setVisibleState({ loading: "orders-loading", ok: host }, "ok");
+
   const params = new URLSearchParams(location.search);
   const orderId = params.get("id");
   const isNew = params.get("new") === "1";
-
-  loading?.classList.add("hidden");
-  host.classList.remove("hidden");
 
   if (orderId) return renderOrderDetail(host, orderId, isNew, u);
   return renderOrderList(host, u);
