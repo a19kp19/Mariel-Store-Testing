@@ -1,51 +1,72 @@
 /* =========================================================
-   Mariel Store — STATIC version (no backend)
+   Mariel Store — main script (runs on every page)
    ---------------------------------------------------------
-   What this file does, top to bottom (search the headers):
+   This is a STATIC website. There is NO server and NO database.
+   Everything (users, cart, orders, etc.) is saved inside the
+   browser using localStorage. Closing the tab keeps the data,
+   but clearing browser data wipes it.
 
-     1.  HELPERS              $, $$, peso, uid, escapeHtml, setVisibleState
-     2.  LOCAL STORAGE STORE  LS keys + readJSON / writeJSON
-     3.  AUTH HELPERS         getUsers, currentUser, signIn/Out
-     4.  PAGE & NAV           buildHeader / buildFooter / buildOverlays
-     5.  TOAST                tiny notification
-     6.  CART                 add / change / remove / render
-     7.  WISHLIST             toggleWish
-     8.  PRODUCTS             DEFAULT_PRODUCTS, productCard, render*
-     9.  PRODUCT DETAIL       renderProductDetail
-     10. REVEAL ON SCROLL     setupReveal
-     11. AUTH FORMS           bindRegister / bindLogin / etc.
-     12. ACCOUNT              loadAccount + bindAccountEdit
-     13. GLOBAL EVENT WIRING  wireEvents — single delegated listener
-     14. ADDRESSES            bindAddresses (CRUD saved addresses)
-     15. CHECKOUT             bindCheckout (PH cascading dropdowns)
-     16. ORDERS               bindOrders + renderOrderList/Detail
-     17. INIT                 DOMContentLoaded → calls every binder
+   Map of this file (use Find / Ctrl+F on the headers below):
 
-   Conventions:
-   - All persistence goes through readJSON/writeJSON + LS.* keys.
-   - All DOM lookups go through $ / $$ helpers.
-   - User-controlled strings rendered into HTML go through
-     escapeHtml() to prevent broken markup / XSS.
-   - "Auth" is a local demo (passwords stored in localStorage)
-     => fine for a school project, NOT real security.
+     1.  HELPERS              tiny shortcut functions used everywhere
+     2.  LOCAL STORAGE STORE  read / write data in the browser
+     3.  AUTH HELPERS         who is logged in right now?
+     4.  PAGE & NAV           the header, footer, mobile menu
+     5.  TOAST                pop-up message in the corner
+     6.  CART                 add / remove / change quantity
+     7.  WISHLIST             save items the user "♥"-ed
+     8.  PRODUCTS             the list of items shown in the shop
+     9.  PRODUCT DETAIL       single product page (product.html?id=...)
+     10. REVEAL ON SCROLL     fade-in effect when you scroll down
+     11. AUTH FORMS           register / login / change password
+     12. ACCOUNT              show + edit profile
+     13. GLOBAL EVENT WIRING  one click listener that handles buttons
+     14. ADDRESSES            up to 3 saved delivery addresses
+     15. CHECKOUT             checkout page + region/province/city menus
+     16. ORDERS               list of past orders + single order page
+     17. INIT                 runs once when the page is loaded
+
+   Things to remember:
+   - Always read/write data with LS.* + readJSON / writeJSON
+     (don't call localStorage directly — it keeps things tidy).
+   - Always look up elements with $("#id") or $$(".class")
+     (no need to type document.querySelector every time).
+   - Anything the user types (name, address, etc.) must go
+     through escapeHtml() before it touches innerHTML, otherwise
+     a "<" can break the page.
+   - Passwords here are stored in plain localStorage. That's
+     OKAY for a school project, but NOT safe for a real shop.
    ========================================================= */
 
 /* =========================================================
-   1. HELPERS
+   1. HELPERS — tiny shortcut functions
    ========================================================= */
+
+// $ ("dollar") = quick way to write document.querySelector.
+//   $("#cart") → first element with id="cart"
+//   $(".btn") → first element with class="btn"
+// $$ returns ALL matches as a real Array (so .map / .forEach work).
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+// Pages live in /pages/ but index.html lives at the root.
+// These helpers build links that work from BOTH locations.
 const onPagesPath = () => location.pathname.includes("/pages/");
-const base = onPagesPath() ? "../" : "";
-const pagePath = (file) => onPagesPath() ? file : `pages/${file}`;
-const home = () => onPagesPath() ? "../index.html" : "index.html";
+const base        = onPagesPath() ? "../" : "";                    // "../" or ""
+const pagePath    = (file) => onPagesPath() ? file : `pages/${file}`;
+const home        = () => onPagesPath() ? "../index.html" : "index.html";
+
+// Format a number as Philippine peso, e.g. peso(1500) → "₱1,500.00"
 const peso = (n) => "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Make a random id string. Used for new users, orders, addresses.
 const uid  = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
-/* Show exactly one of several "state" elements and hide the rest.
-   Replaces the loading/empty/ok pattern repeated by checkout and
-   orders pages. Pass a map of { stateName: element-or-id } then call
-   with the active state name. Missing entries are skipped. */
+// Show ONE element from a group and hide the others.
+// Used by checkout and orders to switch between
+// "loading…", "empty cart", and the real content.
+//   map    : { name: elementOrId, ... }
+//   active : the name to show
 function setVisibleState(map, active) {
   for (const [name, target] of Object.entries(map)) {
     const el = typeof target === "string" ? document.getElementById(target) : target;
@@ -53,8 +74,12 @@ function setVisibleState(map, active) {
   }
 }
 
-/* Empty / not-found state markup. Pass icon + optional title, text,
-   button [label, href], and an optional extra wrapper attribute string. */
+// Build the HTML for an "empty" / "not found" message card.
+//   icon  : an emoji like "🛒"
+//   title : big heading (pass "" to skip)
+//   text  : the message under the icon
+//   btn   : optional [label, href] for a button at the bottom
+//   attr  : optional extra attributes on the wrapper div
 const emptyState = (icon, title, text, btn, attr = "") => `
     <div class="empty"${attr}>
       <div class="icon">${icon}</div>
@@ -63,45 +88,62 @@ const emptyState = (icon, title, text, btn, attr = "") => `
       ${btn ? `<a class="btn" href="${btn[1]}">${btn[0]}</a>` : ""}
     </div>`;
 
-/* Escape HTML for safe interpolation into innerHTML / attributes. */
+// Replace dangerous characters (< > & " ') so user text can be
+// safely placed inside innerHTML without breaking the page.
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 }
-const escapeAttr = escapeHtml; // alias kept for readability at call sites
+const escapeAttr = escapeHtml; // same function, friendlier name when used inside attributes
 
 /* =========================================================
-   LOCAL STORAGE STORE
+   2. LOCAL STORAGE STORE — saves data in the browser
    ========================================================= */
+
+// Every piece of data is stored under a unique "key".
+// Keeping the keys in one object makes typos impossible.
 const LS = {
-  USERS:   "mariel.users",
-  SESSION: "mariel.session",
-  ADDR:    (uid) => `mariel.addresses.${uid}`,
-  ORDERS:  (uid) => `mariel.orders.${uid}`,
-  PRODUCTS:"mariel.products",
-  CART:    "mariel.cart",
-  WISH:    "mariel.wish",
+  USERS:    "mariel.users",                          // every registered user
+  SESSION:  "mariel.session",                        // who is currently logged in
+  ADDR:     (uid) => `mariel.addresses.${uid}`,      // saved delivery addresses (per user)
+  ORDERS:   (uid) => `mariel.orders.${uid}`,         // past orders (per user)
+  PRODUCTS: "mariel.products",                       // updated stock counts
+  CART:     "mariel.cart",                           // current cart contents
+  WISH:     "mariel.wish",                           // wishlisted product ids
 };
 
+// Read a value from localStorage. If anything goes wrong
+// (no value yet, or bad JSON), give back the fallback `fb`.
 const readJSON  = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
+// Save a value (we always save as JSON so we can read objects/arrays).
 const writeJSON = (k, v)  => localStorage.setItem(k, JSON.stringify(v));
 
-/* Auth helpers */
-const getUsers   = () => readJSON(LS.USERS, []);
-const setUsers   = (a) => writeJSON(LS.USERS, a);
+/* =========================================================
+   3. AUTH HELPERS — who is logged in right now?
+   ========================================================= */
+const getUsers   = () => readJSON(LS.USERS, []);   // every account
+const setUsers   = (a) => writeJSON(LS.USERS, a);  // overwrite the list of accounts
+
+// Returns the id stored in the session, or null if nobody is signed in.
 const currentUserId = () => readJSON(LS.SESSION, null)?.userId || null;
+// Returns the FULL user object for whoever is signed in (or null).
 const currentUser   = () => {
   const id = currentUserId();
   if (!id) return null;
   return getUsers().find(u => u.id === id) || null;
 };
-const signOut = () => localStorage.removeItem(LS.SESSION);
-const signIn  = (id) => writeJSON(LS.SESSION, { userId: id });
+const signOut = () => localStorage.removeItem(LS.SESSION);  // forget the session
+const signIn  = (id) => writeJSON(LS.SESSION, { userId: id }); // remember this user
 
 /* =========================================================
-   PAGE & NAV
+   4. PAGE & NAV — header, footer, mobile menu
    ========================================================= */
+
+// Each HTML page sets <body data-page="..."> so we know which
+// nav link should be highlighted as "active".
 const PAGE_KEY = document.body.dataset.page || "home";
 
+// One source of truth for the navigation links.
+// Add or remove an item here to update header AND mobile menu.
 const NAV_ITEMS = [
   { key: "home",     label: "Home",     href: home() },
   { key: "products", label: "Products", href: pagePath("products.html") },
@@ -110,6 +152,8 @@ const NAV_ITEMS = [
   { key: "contact",  label: "Contact",  href: pagePath("contact.html") },
 ];
 
+// Build the top header (logo + nav links + cart + login/account menu).
+// The page only needs an empty <div id="site-header"></div>; we fill it.
 function buildHeader() {
   const slot = $("#site-header");
   if (!slot) return;
@@ -158,9 +202,11 @@ function buildHeader() {
   });
 }
 
+// Build the dark footer at the bottom of every page.
+// Same idea as buildHeader — fills in <div id="site-footer">.
 function buildFooter() {
   const year = new Date().getFullYear();
-  if (document.querySelector(".site-footer")) return;
+  if (document.querySelector(".site-footer")) return; // already built? skip.
   const f = document.createElement("footer");
   f.className = "site-footer";
   f.innerHTML = `
@@ -206,8 +252,14 @@ function buildFooter() {
   else document.body.appendChild(f);
 }
 
+// Build the things that "float" on top of the page:
+//   - the dark backdrop (.scrim)
+//   - the slide-out cart drawer
+//   - the mobile hamburger menu
+//   - the toast notification stack
+// They start hidden until something opens them.
 function buildOverlays() {
-  if ($("#scrim")) return;
+  if ($("#scrim")) return; // already built? skip.
   const div = document.createElement("div");
   div.innerHTML = `
     <div id="scrim" class="scrim"></div>
@@ -246,8 +298,11 @@ function buildOverlays() {
 }
 
 /* =========================================================
-   TOAST
+   5. TOAST — small pop-up message in the corner
    ========================================================= */
+
+// Show a small message that disappears after 3 seconds.
+//   type: "" (default), "ok" (green), or "bad" (red).
 function toast(msg, type = "") {
   const stack = $("#toast-stack"); if (!stack) return alert(msg);
   const el = document.createElement("div");
@@ -258,24 +313,31 @@ function toast(msg, type = "") {
 }
 
 /* =========================================================
-   CART (localStorage)
+   6. CART — items the user wants to buy
    ========================================================= */
+
+// The cart is just an Array of { id, name, price, img, qty } objects.
 const getCart = () => readJSON(LS.CART, []);
+// setCart saves AND re-draws the cart UI in one step.
 const setCart = (c) => { writeJSON(LS.CART, c); renderCart(); };
 
+// Add one of `item` to the cart, but never go over the product's stock.
+// Returns true if it was added, false if the limit was hit.
 function addToCart(item) {
   const cart = getCart();
-  const found = cart.find(i => i.id === item.id);
+  const found = cart.find(i => i.id === item.id);   // already in cart?
   const product = PRODUCTS.find(p => p.id === item.id);
-  const max = product?.stock ?? Infinity;
-  const have = found?.qty || 0;
+  const max = product?.stock ?? Infinity;           // how many we can add at most
+  const have = found?.qty || 0;                     // how many are already in the cart
   if (have + 1 > max) { toast(`Only ${max} available`, "bad"); return false; }
-  if (found) found.qty += 1;
-  else cart.push({ ...item, qty: 1 });
+  if (found) found.qty += 1;                        // bump the quantity
+  else cart.push({ ...item, qty: 1 });              // brand new line
   setCart(cart);
   toast("Added to cart", "ok");
   return true;
 }
+
+// Increase / decrease a line. delta is +1 or -1. Stays between 1 and stock.
 function changeQty(id, delta) {
   const cart = getCart();
   const i = cart.find(x => x.id === id); if (!i) return;
@@ -284,8 +346,10 @@ function changeQty(id, delta) {
   i.qty = Math.max(1, Math.min(max, i.qty + delta));
   setCart(cart);
 }
+// Remove a line completely.
 function removeFromCart(id) { setCart(getCart().filter(i => i.id !== id)); }
 
+// Re-draw the cart drawer and the little number badge on the cart icon.
 function renderCart() {
   const list = $("#cart-items");
   const count = $("#cart-count");
@@ -317,15 +381,22 @@ function renderCart() {
   total.textContent = peso(cart.reduce((s, i) => s + i.price * i.qty, 0));
 }
 
-function openCart() { $("#scrim")?.classList.add("open"); $("#cart-drawer")?.classList.add("open"); }
+// Slide-out cart and mobile menu open/close.
+// They share the same dark backdrop (#scrim) so we toggle it here too.
+function openCart()  { $("#scrim")?.classList.add("open");    $("#cart-drawer")?.classList.add("open"); }
 function closeCart() { $("#scrim")?.classList.remove("open"); $("#cart-drawer")?.classList.remove("open"); closeMenu(); }
-function openMenu() { $("#scrim")?.classList.add("open"); $("#mobile-nav")?.classList.add("open"); }
+function openMenu()  { $("#scrim")?.classList.add("open");    $("#mobile-nav")?.classList.add("open"); }
 function closeMenu() { $("#mobile-nav")?.classList.remove("open"); }
 
 /* =========================================================
-   WISHLIST
+   7. WISHLIST — items the user has "♥"-ed
    ========================================================= */
+
+// The wishlist is just an Array of product ids (strings).
 const getWish = () => readJSON(LS.WISH, []);
+
+// Click the heart on a product → if it's in the list, remove it. Otherwise add it.
+// Then refresh anywhere a product card might be showing the heart.
 function toggleWish(id) {
   const list = getWish();
   const idx = list.indexOf(id);
@@ -338,14 +409,21 @@ function toggleWish(id) {
 }
 
 /* =========================================================
-   PRODUCTS (in-memory + localStorage stock updates)
+   8. PRODUCTS — the items shown in the shop
    ========================================================= */
+
+// Turn a product image into a real URL that works from any page.
+// Accepts:  "images/x.jpg"  →  prefixes with "../" if we're inside /pages/
+//           "https://..."   →  returned as-is (external image)
+//           ""              →  uses the logo as a fallback
 function resolveImg(src) {
   if (!src) return base + "images/logo.png";
   if (/^(https?:)?\/\//i.test(src) || src.startsWith("/")) return src;
   return base + src.replace(/^\.?\//, "");
 }
 
+// The starting catalog. localStorage may later overwrite stock numbers
+// after orders are placed, but the names/prices/images live here.
 const DEFAULT_PRODUCTS = [
   { id: "iphone14", name: "iPhone 14 Pro",             price: 50000, cat: "Gadgets",     img: "images/products/Iphone14.jpg",   tag: "Bestseller", desc: "128GB, factory unlocked, 1-year warranty.",                details: "6.1\" Super Retina XDR display, A16 Bionic chip, 48MP main camera, Face ID, 5G.",      stock: 3,  sort_order: 1 },
   { id: "iphone12", name: "iPhone 12",                 price: 28000, cat: "Gadgets",     img: "images/products/Iphone12.jpg",   tag: "",           desc: "256GB, factory unlocked, 1-year warranty.",                details: "6.1\" OLED display, A14 Bionic chip, dual 12MP cameras, 5G capable.",                  stock: 7,  sort_order: 2 },
@@ -356,8 +434,12 @@ const DEFAULT_PRODUCTS = [
   { id: "chair1",   name: "Set of Lounge Chairs",      price: 3000,  cat: "Furnitures",  img: "images/products/chair1.jpg",     tag: "New",        desc: "Comfortable, stylish, perfect for any living room.",        details: "3-seater, high-density foam cushions, durable fabric upholstery.",                      stock: 1,  sort_order: 7 },
 ];
 
+// PRODUCTS = the live list used everywhere on the page.
+// We load it from localStorage if available, otherwise from DEFAULT_PRODUCTS.
 let PRODUCTS = loadProductsFromStore();
 
+// Build the live PRODUCTS list: pick the source, sort by sort_order,
+// and turn each image path into a real URL.
 function loadProductsFromStore() {
   const stored = readJSON(LS.PRODUCTS, null);
   const src = stored && Array.isArray(stored) && stored.length ? stored : DEFAULT_PRODUCTS;
@@ -367,17 +449,20 @@ function loadProductsFromStore() {
     .map(p => ({ ...p, img: resolveImg(p.img) }));
 }
 
+// Save a new product list (e.g. after stock decreased) and refresh PRODUCTS.
+// We strip "../" from images before saving so other pages can re-resolve them.
 function persistProducts(list) {
-  // Store with raw image paths (no resolved base) so other pages resolve correctly
   writeJSON(LS.PRODUCTS, list.map(p => ({ ...p, img: stripBase(p.img) })));
   PRODUCTS = loadProductsFromStore();
 }
+// Undo what resolveImg() added — gives back "images/x.jpg".
 function stripBase(src) {
   if (!src) return src;
   if (base && src.startsWith(base)) return src.slice(base.length);
   return src;
 }
 
+// Categories used by the filter chips on the products page.
 const CATEGORIES = [
   { key: "all",         label: "All" },
   { key: "gadgets",     label: "Gadgets" },
@@ -386,6 +471,7 @@ const CATEGORIES = [
   { key: "foods",       label: "Foods" },
 ];
 
+// Build the HTML for ONE product card (used in featured + products grid).
 function productCard(p) {
   const wished = getWish().includes(p.id);
   const link = `${pagePath("product.html")}?id=${p.id}`;
@@ -409,9 +495,11 @@ function productCard(p) {
   `;
 }
 
+// Re-draw the full products page: search box, category chips, and the grid.
+// Filters by the active chip + the search input every time.
 function renderProducts() {
   const grid = $("#products-grid");
-  if (!grid) return;
+  if (!grid) return;  // not on the products page → do nothing
 
   const toolbar = $("#products-toolbar");
   if (toolbar && !toolbar.dataset.ready) {
@@ -442,15 +530,18 @@ function renderProducts() {
     : emptyState("🔍", "", "No products match your search.", null, ' style="grid-column:1/-1"');
 }
 
+// Show the first 4 products on the home page.
 function renderFeatured() {
   const grid = $("#featured-grid");
-  if (!grid) return;
+  if (!grid) return;  // not on the home page → do nothing
   grid.innerHTML = PRODUCTS.slice(0, 4).map(productCard).join("");
 }
 
 /* =========================================================
-   PRODUCT DETAIL PAGE
+   9. PRODUCT DETAIL — single product page
    ========================================================= */
+
+// Fills #product-detail with the product chosen by ?id=... in the URL.
 function renderProductDetail() {
   const host = $("#product-detail");
   if (!host) return;
@@ -510,30 +601,53 @@ function renderProductDetail() {
 }
 
 /* =========================================================
-   REVEAL ON SCROLL
+   10. REVEAL ON SCROLL — fade things in as you scroll
    ========================================================= */
+
+// Anything with class "reveal" starts invisible. When it scrolls
+// into view we add the class "in" (the CSS does the fade-in).
 function setupReveal() {
   const els = $$(".reveal");
+  // Old browsers? Just show everything immediately.
   if (!("IntersectionObserver" in window)) { els.forEach(e => e.classList.add("in")); return; }
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-  }, { threshold: 0.12 });
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add("in");
+        io.unobserve(e.target);  // we only need to reveal once
+      }
+    });
+  }, { threshold: 0.12 }); // trigger when ~12% of the element is visible
   els.forEach(e => io.observe(e));
 }
 
 /* =========================================================
-   AUTH (local — uses localStorage; demo only)
+   11. AUTH FORMS — register / login / change password
+   (this is a school-project demo: passwords live in
+   localStorage, NOT a real database.)
    ========================================================= */
+
+// Password rule: at least 6 chars, with upper, lower, digit, and a symbol.
 const isStrong = (p) => p.length >= 6 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /[0-9]/.test(p) && /[^A-Za-z0-9]/.test(p);
+// Username rule: only letters (a–z, A–Z).
 const isLettersOnly = (s) => /^[A-Za-z]+$/.test(s);
+// Full-name rule: letters and spaces only.
 const isLettersAndSpaces = (s) => /^[A-Za-z\s]+$/.test(s);
+
+// Show a small message under a form (id = the message element).
+// `ok=true` paints it green ("success"); otherwise it stays red ("error").
 const setMsg = (id, msg, ok = false) => {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = msg; el.classList.toggle("ok", ok);
 };
+
+// Pick the nicest name we can show for a user (username > full name > email handle).
 const getDisplayName = (u) => u?.username || u?.full_name || (u?.email ? u.email.split("@")[0] : "Account");
 
+// Make the "Show / Hide password" buttons work on a form.
+// Buttons have data-toggle="<input id>". Optional data-group makes
+// several toggles flip together (used on register: password + confirm).
 function bindPasswordToggles(root) {
   const scope = root || document;
   const applyToggle = (btn, show) => {
@@ -561,6 +675,7 @@ function bindPasswordToggles(root) {
   });
 }
 
+// Live "is this password strong?" hint shown under a password field.
 function bindPasswordHint(inputId, hintId) {
   const pw = $("#" + inputId);
   if (!pw) return;
@@ -574,19 +689,24 @@ function bindPasswordHint(inputId, hintId) {
   });
 }
 
+// "Sign in with Google" needs a real server, so we just hide it
+// and show a friendly message if someone clicks the button.
 function hideGoogleButton(id, msgId) {
   const btn = document.getElementById(id);
   if (!btn) return;
   btn.addEventListener("click", () => setMsg(msgId, "Google sign-in is not available in the static demo."));
-  // Hide the social section since OAuth needs a backend
+  // Hide the row that contains the Google button (or the button itself)
   const wrap = btn.closest(".social-row, .social-buttons, .social-login, .social, .form-row, .auth-social");
   if (wrap) wrap.style.display = "none";
   else btn.style.display = "none";
-  // Also hide adjacent dividers
+  // Also hide the "or" divider that sat next to it.
   const divider = document.querySelector(".or-divider, .divider, .auth-divider");
   if (divider) divider.style.display = "none";
 }
 
+// Switch the header between "Login | Register" (logged out) and
+// the user-menu pill with avatar + dropdown (logged in).
+// Also kicks signed-in users off the login/register pages.
 function updateAuthUI() {
   const u = currentUser();
   const userMenu = $("#user-menu");
@@ -615,12 +735,13 @@ function updateAuthUI() {
   if ((PAGE_KEY === "login" || PAGE_KEY === "register")) location.href = home();
 }
 
+// Wire up the register page: live input filters, validation, account creation.
 function bindRegister() {
-  const f = $("#register-form"); if (!f) return;
+  const f = $("#register-form"); if (!f) return; // not on the register page → skip
   bindPasswordHint("password", "password-hint");
   hideGoogleButton("google-register", "form-message");
 
-  // Restrict username to letters only (real-time)
+  // While the user types, throw away anything that isn't a letter.
   const usernameInput = $("#username");
   if (usernameInput) {
     usernameInput.addEventListener("input", () => {
@@ -628,7 +749,7 @@ function bindRegister() {
     });
   }
 
-  // Restrict full name to letters and spaces only (real-time)
+  // Same idea for full name, but spaces are allowed.
   const fullNameInput = $("#full-name");
   if (fullNameInput) {
     fullNameInput.addEventListener("input", () => {
@@ -667,8 +788,9 @@ function bindRegister() {
   });
 }
 
+// Wire up the login page.
 function bindLogin() {
-  const f = $("#login-form"); if (!f) return;
+  const f = $("#login-form"); if (!f) return; // not on the login page → skip
   hideGoogleButton("google-login", "login-message");
   f.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -683,8 +805,9 @@ function bindLogin() {
   });
 }
 
+// Wire up the "Change password" form on the account page.
 function bindChangePassword() {
-  const f = $("#password-form"); if (!f) return;
+  const f = $("#password-form"); if (!f) return; // form not on this page → skip
   bindPasswordHint("new-password", "new-password-hint");
   f.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -706,8 +829,14 @@ function bindChangePassword() {
   });
 }
 
+/* =========================================================
+   12. ACCOUNT — show + edit profile
+   ========================================================= */
+
+// Fill in the account info card (username, full name, email, phone).
+// Sends the user to login if they aren't signed in.
 function loadAccount() {
-  const u1 = $("#account-username"); if (!u1) return;
+  const u1 = $("#account-username"); if (!u1) return; // not on the account page
   const u = currentUser();
   if (!u) { location.href = pagePath("login.html"); return; }
   u1.textContent = u.username || "—";
@@ -717,13 +846,14 @@ function loadAccount() {
   bindAccountEdit(u);
 }
 
+// Wire up the "Edit profile" form: open / cancel / save.
 function bindAccountEdit(u) {
   const editBtn = $("#edit-profile-btn");
   const cancelBtn = $("#cancel-edit-btn");
   const form = $("#account-edit");
   const view = $("#account-view");
   if (!editBtn || !form || !view) return;
-  if (form.dataset.bound) return;
+  if (form.dataset.bound) return;     // we already wired this form
   form.dataset.bound = "1";
 
   const openEdit = () => {
@@ -774,50 +904,71 @@ function bindAccountEdit(u) {
 }
 
 /* =========================================================
-   GLOBAL EVENT WIRING
+   13. GLOBAL EVENT WIRING — one big click listener
+   ---------------------------------------------------------
+   Instead of attaching click handlers to every button (which
+   we'd have to redo every time we re-draw the page), we listen
+   for ALL clicks here and decide what to do based on what was
+   clicked. This is called "event delegation".
    ========================================================= */
 function wireEvents() {
   document.addEventListener("click", (e) => {
+    // Find the closest element we actually care about. If there
+    // isn't one (the user clicked empty space), do nothing.
     const t = e.target.closest("[data-act], [data-id], [data-pd], #open-cart, #close-cart, #scrim, #menu-open, #menu-close, .add-cart, .wish, .chip, #checkout-btn");
     if (!t) return;
 
+    // ---- Cart drawer + mobile menu open/close ----
     if (t.id === "open-cart") return openCart();
     if (t.id === "close-cart" || t.id === "scrim") return closeCart();
     if (t.id === "menu-open") return openMenu();
     if (t.id === "menu-close") return closeMenu();
 
+    // ---- "Add to Cart" buttons (cards + product detail page) ----
     if (t.classList.contains("add-cart")) {
       const p = PRODUCTS.find(x => x.id === t.dataset.id);
       if (!p) return;
+      // On the product page the button reads the quantity from a number input.
       let qty = 1;
       if (t.dataset.qtyFrom) {
         const inp = document.querySelector(t.dataset.qtyFrom);
         qty = Math.max(1, parseInt(inp?.value, 10) || 1);
       }
+      // Add one at a time so addToCart's stock check works for each unit.
       for (let i = 0; i < qty; i++) {
         if (!addToCart({ id: p.id, name: p.name, price: p.price, img: p.img })) break;
       }
       return;
     }
+
+    // ---- Plus / minus buttons on the product detail page ----
     if (t.dataset.pd === "inc" || t.dataset.pd === "dec") {
       const inp = $("#pd-qty-input");
       if (!inp) return;
       const max = parseInt(inp.max, 10) || Infinity;
       let v = (parseInt(inp.value, 10) || 1) + (t.dataset.pd === "inc" ? 1 : -1);
       v = Math.max(1, Math.min(max, v));
+      // Show a warning if "+" was clicked but we hit the stock limit.
       if (t.dataset.pd === "inc" && v === parseInt(inp.value, 10)) toast(`Only ${max} available`, "bad");
       inp.value = v;
       return;
     }
+
+    // ---- Heart / wishlist button ----
     if (t.classList.contains("wish")) return toggleWish(t.dataset.id);
+
+    // ---- Category filter chips on the products page ----
     if (t.classList.contains("chip")) {
       const grid = $("#products-grid");
       if (grid) { grid.dataset.cat = t.dataset.cat; renderProducts(); }
       return;
     }
+
+    // ---- "Checkout" button at the bottom of the cart drawer ----
     if (t.id === "checkout-btn") {
       if (getCart().length === 0) return toast("Your cart is empty", "bad");
       if (!currentUser()) {
+        // Not logged in? Send them to the login page after a tiny delay.
         toast("Please log in to checkout", "bad");
         closeCart();
         setTimeout(() => location.href = pagePath("login.html"), 800);
@@ -828,32 +979,41 @@ function wireEvents() {
       return;
     }
 
+    // ---- Cart line buttons: + / - / remove ----
     if (t.dataset.act === "inc") changeQty(t.dataset.id, +1);
     if (t.dataset.act === "dec") changeQty(t.dataset.id, -1);
     if (t.dataset.act === "rm")  removeFromCart(t.dataset.id);
   });
 
+  // Live search: re-draw the products grid every time the user types.
   document.addEventListener("input", (e) => {
     if (e.target.id === "product-search") renderProducts();
   });
 }
 
 /* =========================================================
-   SAVED ADDRESSES (Account page)
+   14. SAVED ADDRESSES (Account page)
+   Each user can save up to 3 delivery addresses, then pick
+   one quickly at checkout.
    ========================================================= */
-const ADDR_LIMIT = 3;
 
+const ADDR_LIMIT = 3; // max addresses we let one user save
+
+// Read this user's saved addresses (or [] if not signed in).
 function fetchUserAddresses() {
   const u = currentUser();
   if (!u) return [];
   return readJSON(LS.ADDR(u.id), []);
 }
+// Save this user's addresses back to localStorage.
 function saveUserAddresses(list) {
   const u = currentUser();
   if (!u) return;
   writeJSON(LS.ADDR(u.id), list);
 }
 
+// Wire up the whole "Saved Addresses" panel on the account page.
+// Handles: list, add form, edit, delete, set as default.
 function bindAddresses() {
   const list = $("#addresses-list");
   if (!list) return;
@@ -985,13 +1145,15 @@ function bindAddresses() {
 }
 
 /* =========================================================
-   CHECKOUT PAGE
+   15. CHECKOUT PAGE — region/province/city dropdowns + place order
    ========================================================= */
+
+// Shipping fee in pesos for each "tier" of region.
 const SHIPPING_FEES = { ncr: 100, luzon: 180, visayas: 220, mindanao: 250 };
 
-/* Legacy fallback used when ph-address.js is NOT loaded on a page
-   (it only ships with checkout.html — accounts/orders also display
-   region info, so they need a sensible default). */
+// The big PH_REGIONS list lives in ph-address.js, which is only
+// loaded on checkout.html. The account + orders pages also need
+// to SHOW region names, so we keep this short backup list here.
 const LEGACY_REGIONS = {
   ncr:      { label: "Metro Manila (NCR)",   shipping: "ncr" },
   luzon:    { label: "Luzon (outside NCR)",  shipping: "luzon" },
@@ -999,8 +1161,10 @@ const LEGACY_REGIONS = {
   mindanao: { label: "Mindanao",             shipping: "mindanao" },
 };
 
-/* Look up a region by key. Returns { label, shipping } or null.
-   Single source of truth used by getRegionLabel + getShippingFee. */
+// Find a region by its key. Tries the full PH list first,
+// then falls back to LEGACY_REGIONS. Returns null if nothing matches.
+// Used by both getRegionLabel() and getShippingFee() so we only
+// have ONE place that knows where regions come from.
 function findRegion(key) {
   if (typeof PH_REGIONS !== "undefined") {
     const r = PH_REGIONS.find(x => x.key === key);
@@ -1009,15 +1173,20 @@ function findRegion(key) {
   return LEGACY_REGIONS[key] || null;
 }
 
+// "ncr" → "Metro Manila (NCR)" (shown on the orders page).
 function getRegionLabel(key) {
   return findRegion(key)?.label || key;
 }
+// "ncr" → 100 (the peso amount).
 function getShippingFee(regionKey) {
   const tier = findRegion(regionKey)?.shipping;
   return tier ? SHIPPING_FEES[tier] : null;
 }
+
+// Friendly names for the payment method radio buttons.
 const PAYMENT_LABELS = { cod: "Cash on Delivery", online: "Online Payment", installment: "Installment" };
 
+// Wire up the whole checkout page.
 function bindCheckout() {
   const app = $("#checkout-app");
   if (!app) return;
@@ -1036,9 +1205,13 @@ function bindCheckout() {
   $("#co-email").value = u.email || "";
 
   const savedAddresses = fetchUserAddresses();
-  let activePickedAddrId = null;
+  let activePickedAddrId = null; // which saved address (if any) is currently picked
 
-  // --- Philippine cascading address helpers ---
+  // ---- Region / Province / City dropdowns ----
+  // Picking a region fills the provinces. Picking a province
+  // fills the cities. Picking a city fills the postal code.
+
+  // Fill the Region dropdown from the master PH_REGIONS list.
   function buildRegionDropdown() {
     const sel = $("#co-region");
     PH_REGIONS.forEach(r => {
@@ -1049,6 +1222,8 @@ function bindCheckout() {
     });
   }
 
+  // Refill the Province dropdown for a chosen region.
+  // Also clears the city + postal because they no longer match.
   function buildProvinceDropdown(regionKey) {
     const sel = $("#co-province");
     sel.innerHTML = '<option value="">Select province…</option>';
@@ -1060,13 +1235,14 @@ function bindCheckout() {
       sel.appendChild(opt);
     });
     sel.disabled = !provinces.length;
-    // Reset city when province changes
+    // Province changed → reset city + postal so old values don't stick around.
     const citySel = $("#co-city");
     citySel.innerHTML = '<option value="">Select city / municipality…</option>';
     citySel.disabled = true;
     $("#co-postal").value = "";
   }
 
+  // Refill the City dropdown for a chosen province.
   function buildCityDropdown(provinceKey) {
     const sel = $("#co-city");
     sel.innerHTML = '<option value="">Select city / municipality…</option>';
@@ -1083,11 +1259,12 @@ function bindCheckout() {
 
   buildRegionDropdown();
 
+  // Fill the whole form from a saved address card.
+  // We have to fill the dropdowns in order: region → province → city → postal.
   function fillFromAddress(a) {
     $("#co-name").value     = a.full_name;
     $("#co-phone").value    = a.phone;
     $("#co-address").value  = a.address_line;
-    // Cascade: region → province → city → postal
     const regionKey   = a.region   || "";
     const provinceKey = a.province || "";
     const cityName    = a.city     || "";
@@ -1108,6 +1285,9 @@ function bindCheckout() {
     refreshSaveCheckbox();
   }
 
+  // Hide "Save this address" when:
+  //   - a saved address is already picked (no point saving again), or
+  //   - the user already has 3 saved addresses (the limit).
   function refreshSaveCheckbox() {
     const row = $("#save-addr-row");
     const cb = $("#co-save-address");
@@ -1186,7 +1366,8 @@ function bindCheckout() {
   renderItems();
   recomputeTotals();
 
-  // Cascading dropdown event listeners
+  // When the user picks a region, refill the province dropdown and
+  // recompute shipping. Same idea down the chain (province → city → postal).
   $("#co-region").addEventListener("change", () => {
     buildProvinceDropdown($("#co-region").value);
     recomputeTotals();
@@ -1225,7 +1406,8 @@ function bindCheckout() {
       }
     }
 
-    // Stock check + decrement
+    // Make sure every item still has enough stock.
+    // (Someone could have changed it since the cart was last opened.)
     for (const it of list) {
       const p = PRODUCTS.find(x => x.id === it.id);
       if (!p || p.stock < it.qty) {
@@ -1258,7 +1440,7 @@ function bindCheckout() {
       })),
     };
 
-    // Decrement product stock
+    // Subtract the bought items from stock and save the catalog back.
     const updated = PRODUCTS.map(p => ({ ...p, img: stripBase(p.img) }));
     for (const it of list) {
       const p = updated.find(x => x.id === it.id);
@@ -1266,12 +1448,12 @@ function bindCheckout() {
     }
     persistProducts(updated);
 
-    // Save order
+    // Save the order. unshift() puts it at the top of the list.
     const orders = readJSON(LS.ORDERS(u.id), []);
     orders.unshift(order);
     writeJSON(LS.ORDERS(u.id), orders);
 
-    // Optional: save the address
+    // If the user ticked "Save this address", add it to their saved list.
     const wantsSave = $("#co-save-address")?.checked;
     if (wantsSave && !activePickedAddrId && savedAddresses.length < ADDR_LIMIT) {
       const all = fetchUserAddresses();
@@ -1291,39 +1473,46 @@ function bindCheckout() {
       saveUserAddresses(all);
     }
 
-    setCart([]);
+    setCart([]); // empty the cart now that the order is placed
+    // Send the user to the new order page (?new=1 shows the "Thank you" banner).
     location.href = pagePath("orders.html") + `?id=${order.id}&new=1`;
   });
 }
 
 /* =========================================================
-   ORDERS PAGE (list + detail)
+   16. ORDERS PAGE — list of past orders + single order page
    ========================================================= */
+
+// Friendly labels for the order.status field.
 const STATUS_LABELS = {
   pending: "Pending", packed: "Packed", shipped: "Shipped",
   delivered: "Delivered", cancelled: "Cancelled"
 };
+// Build the colored status pill (CSS classes do the colors).
 function statusPill(status) {
   return `<span class="status-pill status-${status}">${STATUS_LABELS[status] || status}</span>`;
 }
 
+// Decide what to draw on the orders page.
+// ?id=<orderId> in the URL → show one order. Otherwise → show the list.
 function bindOrders() {
   const host = $("#orders-content");
   if (!host) return;
 
   const u = currentUser();
-  if (!u) { location.href = pagePath("login.html"); return; }
+  if (!u) { location.href = pagePath("login.html"); return; } // must be signed in
 
   setVisibleState({ loading: "orders-loading", ok: host }, "ok");
 
   const params = new URLSearchParams(location.search);
   const orderId = params.get("id");
-  const isNew = params.get("new") === "1";
+  const isNew = params.get("new") === "1"; // came from a fresh checkout?
 
   if (orderId) return renderOrderDetail(host, orderId, isNew, u);
   return renderOrderList(host, u);
 }
 
+// Build the "My Orders" list (one card per order).
 function renderOrderList(host, u) {
   const data = readJSON(LS.ORDERS(u.id), []);
   if (!data.length) {
@@ -1356,6 +1545,7 @@ function renderOrderList(host, u) {
     </div>`;
 }
 
+// Build the single-order page (header banner + items + delivery info).
 function renderOrderDetail(host, orderId, isNew, u) {
   const order = readJSON(LS.ORDERS(u.id), []).find(o => o.id === orderId);
   if (!order) {
@@ -1430,24 +1620,38 @@ function renderOrderDetail(host, orderId, isNew, u) {
 }
 
 /* =========================================================
-   INIT
+   17. INIT — runs once when the page is loaded
+   ---------------------------------------------------------
+   We call EVERY binder here. Each one starts by checking
+   whether the element it cares about exists on this page,
+   and quietly returns if not. So this same list works for
+   every page (home, products, login, checkout, orders, etc.).
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
+  // 1. Build the shared header / footer / overlays on every page.
   buildHeader();
   buildFooter();
   buildOverlays();
+
+  // 2. Draw the parts that depend on data (only fire on pages that have them).
   renderCart();
   renderFeatured();
   renderProducts();
   renderProductDetail();
   setupReveal();
+
+  // 3. Wire up clicks (cart buttons, add-to-cart, chips, etc.).
   wireEvents();
+
+  // 4. Wire up the auth + account forms (each one no-ops on the wrong page).
   bindRegister();
   bindLogin();
   bindChangePassword();
   bindPasswordToggles();
   loadAccount();
   updateAuthUI();
+
+  // 5. Wire up the checkout, orders, and saved addresses pages.
   bindCheckout();
   bindOrders();
   bindAddresses();
