@@ -76,7 +76,7 @@ const LS = {
 const readJSON  = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
 const writeJSON = (k, v)  => localStorage.setItem(k, JSON.stringify(v));
 
-/* Seed a default admin account on first run so the Admin page is reachable */
+/* default admin account */
 function seedAdmin() {
   const users = readJSON(LS.USERS, []);
   if (users.some(u => u.email === "admin@marielstore.com")) return;
