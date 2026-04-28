@@ -1,57 +1,85 @@
 /* =========================================================
    Mariel Store — stylesheet
    ---------------------------------------------------------
-   Sections (search by header text to jump):
-     1.  Variables / tokens (:root)
-     2.  Reset + base
-     3.  Layout helpers
-     4.  Typography
-     5.  Buttons        (incl. .btn-sm, .btn-danger — defined ONCE)
-     6.  Header / Nav
-     7.  Hero / Page header
-     8.  Cards / Split / Categories
-     9.  Products grid + Product detail page
-     10. Contact / CTA / Footer
-     11. Auth + Account
+   How this file is organised (use Find / Ctrl+F on the headers
+   below to jump around):
+
+     1.  Variables / tokens (:root)   — colors, sizes, spacing
+     2.  Reset + base                 — same starting point on every browser
+     3.  Layout helpers               — .container, .grid, .row, .hidden
+     4.  Typography                   — h1–h4, paragraphs, .eyebrow
+     5.  Buttons                      — .btn, .btn-outline, .btn-sm, .btn-danger…
+     6.  Header / Nav                 — top bar + user dropdown
+     7.  Hero / Page header           — big banner at the top of pages
+     8.  Cards / Split / Categories   — feature cards + 2-column block + cat strip
+     9.  Products grid                — toolbar, chips, product cards, .empty
+     10. Contact / CTA / Footer       — info card, call-to-action, dark footer
+     11. Auth + Account               — login, register, profile cards
      12. Cart drawer + Mobile menu + Toast
-     13. Reveal-on-scroll + Responsive
-     14. Checkout / Orders / Addresses
-   Naming: state classes use plain words (.open, .active, .hidden,
-   .on, .ok, .bad). Stick with --brand / --ink / --line / --bg
-   tokens instead of raw hex codes when editing.
+     13. Reveal-on-scroll + Responsive (small-screen rules)
+     14. Product Detail / Account / Checkout / Orders / Addresses
+
+   Tips for editing:
+   - Change a color or size ONCE in :root and it updates everywhere.
+   - State classes are plain English: .open, .active, .hidden,
+     .on, .ok, .bad — easy to find with search.
+   - Prefer the var(--brand) / var(--ink) / var(--line) tokens
+     instead of pasting hex codes (#b91c1c, #111418…).
    ========================================================= */
 
-/* Local font (works offline) */
+/* Local font (works even if the user is offline) */
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("./fonts/pjs-400.ttf") format("truetype"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("./fonts/pjs-500.ttf") format("truetype"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("./fonts/pjs-600.ttf") format("truetype"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("./fonts/pjs-700.ttf") format("truetype"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 800; font-display: swap; src: url("./fonts/pjs-800.ttf") format("truetype"); }
 
+/* =========================================================
+   1. Variables / design tokens
+   Anything used in lots of places lives here. Change one
+   value and the whole site updates.
+   ========================================================= */
 :root {
-  --brand: #b91c1c;
-  --brand-dark: #7f1010;
-  --brand-soft: #fff1f1;
-  --ink: #111418;
-  --ink-2: #2a2f36;
-  --muted: #6b7280;
-  --line: #e6e8eb;
-  --bg: #f7f7f8;
-  --card: #ffffff;
-  --ok: #15803d;
-  --warn: #b45309;
+  /* Brand colors (the red Mariel Store theme) */
+  --brand:      #b91c1c;   /* main red — buttons, prices, links */
+  --brand-dark: #7f1010;   /* darker red for hover states */
+  --brand-soft: #fff1f1;   /* very light red — soft backgrounds */
+
+  /* Text colors */
+  --ink:   #111418;   /* main text — headings */
+  --ink-2: #2a2f36;   /* slightly lighter — paragraphs */
+  --muted: #6b7280;   /* gray — captions, hints */
+
+  /* Surface colors */
+  --line: #e6e8eb;   /* borders / dividers */
+  --bg:   #f7f7f8;   /* page background */
+  --card: #ffffff;   /* card / panel background */
+
+  /* Status colors */
+  --ok:   #15803d;   /* green — success */
+  --warn: #b45309;   /* amber — warnings (currently unused) */
+
+  /* Box shadows (small / medium / large) */
   --shadow-sm: 0 1px 2px rgba(17, 20, 24, .06);
-  --shadow: 0 6px 20px rgba(17, 20, 24, .08);
+  --shadow:    0 6px 20px rgba(17, 20, 24, .08);
   --shadow-lg: 0 20px 60px rgba(17, 20, 24, .18);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 20px;
-  --container: 1180px;
-  --header-h: 72px;
+
+  /* Corner roundness */
+  --radius:    12px;   /* default */
+  --radius-sm: 8px;    /* tighter — inputs, small buttons */
+  --radius-lg: 20px;   /* bigger — auth + account cards */
+
+  /* Layout */
+  --container: 1180px; /* max page width */
+  --header-h:  72px;   /* fixed header height */
+
+  /* Default transition speed (used by .btn, .card, .nav-links a, etc.) */
   --t: .2s ease;
 }
 
-/* Reset */
+/* =========================================================
+   2. Reset + base — give every browser the same starting point
+   ========================================================= */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -69,7 +97,7 @@ button { font: inherit; cursor: pointer; border: 0; background: none; color: inh
 input, textarea, select { font: inherit; color: inherit; }
 
 /* =========================================================
-   Layout helpers
+   3. Layout helpers — building blocks reused by every page
    ========================================================= */
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 20px; }
 .section { padding: 72px 0; }
@@ -88,7 +116,7 @@ input, textarea, select { font: inherit; color: inherit; }
 .muted { color: var(--muted); }
 
 /* =========================================================
-   Typography
+   4. Typography — headings, paragraphs, the little "eyebrow" label
    ========================================================= */
 h1, h2, h3, h4 { color: var(--ink); line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
 h1 { font-size: clamp(2rem, 4vw + 1rem, 3.5rem); }
@@ -108,7 +136,7 @@ em { color: inherit; font-style: normal; }
 .section-head .lead { margin-inline: auto; }
 
 /* =========================================================
-   Buttons
+   5. Buttons — one .btn base + variants (.btn-outline, .btn-sm…)
    ========================================================= */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -153,7 +181,7 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Header / Nav
+   6. Header / Nav — sticky bar at the top of every page
    ========================================================= */
 .site-header {
   position: sticky; top: 0; z-index: 50;
@@ -222,7 +250,7 @@ em { color: inherit; font-style: normal; }
 .menu-toggle { display: none; }
 
 /* =========================================================
-   Hero
+   7. Hero — big banner on the home page
    ========================================================= */
 .hero {
   position: relative;
@@ -241,7 +269,8 @@ em { color: inherit; font-style: normal; }
 .hero .row { justify-content: center; }
 
 /* =========================================================
-   Page header (subpages)
+   Page header — small dark banner at the top of subpages
+   (products, about, contact, etc.)
    ========================================================= */
 .page-header {
   background: linear-gradient(135deg, var(--ink) 0%, #1f2329 100%);
@@ -252,7 +281,7 @@ em { color: inherit; font-style: normal; }
 .page-header p { color: rgba(255,255,255,.75); max-width: 60ch; margin-inline: auto; }
 
 /* =========================================================
-   Cards (features / values)
+   8. Cards — feature / value cards used on Home + About
    ========================================================= */
 .card {
   background: var(--card); border: 1px solid var(--line);
@@ -276,7 +305,7 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Two column block
+   Two-column block (image on one side, text on the other)
    ========================================================= */
 .split {
   display: grid; gap: 40px;
@@ -301,7 +330,7 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Categories strip
+   Categories strip on the Home page (Gadgets / Furnitures…)
    ========================================================= */
 .cats { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 .cat {
@@ -320,7 +349,7 @@ em { color: inherit; font-style: normal; }
 .cat:hover img { transform: scale(1.06); }
 
 /* =========================================================
-   Products grid
+   9. Products grid — search bar, chips, product cards, empty state
    ========================================================= */
 .toolbar {
   display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px;
@@ -371,15 +400,16 @@ em { color: inherit; font-style: normal; }
 .product .actions { display: flex; gap: 8px; padding: 0 16px 16px; }
 .product .actions .btn { flex: 1; }
 
-/* Empty state */
+/* Empty state — used when the cart, search, or orders are empty */
 .empty {
   text-align: center; padding: 60px 20px; color: var(--muted);
 }
 .empty .icon { font-size: 2.5rem; margin-bottom: 10px; }
 
 /* =========================================================
-   Contact
+   10. Contact / CTA / Footer
    ========================================================= */
+/* Contact info box on the contact page */
 .info-box {
   background: #fff; border: 1px solid var(--line);
   border-radius: var(--radius); padding: 28px;
@@ -397,9 +427,7 @@ em { color: inherit; font-style: normal; }
 .info-item h4 { margin-bottom: 2px; }
 .info-item p { font-size: .9rem; color: var(--muted); }
 
-/* =========================================================
-   CTA banner
-   ========================================================= */
+/* CTA banner — the red "Have any questions?" strip on the home page */
 .cta {
   background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
   color: #fff; padding: 56px 0;
@@ -411,9 +439,7 @@ em { color: inherit; font-style: normal; }
 .cta h2 { color: #fff; margin-bottom: 4px; }
 .cta p { color: rgba(255,255,255,.85); }
 
-/* =========================================================
-   Footer
-   ========================================================= */
+/* Footer — dark strip at the bottom of every page */
 .site-footer {
   background: var(--ink); color: rgba(255,255,255,.7);
   padding: 56px 0 24px; margin-top: 0;
@@ -441,7 +467,7 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Auth forms
+   11. Auth + Account — login, register, profile cards, form fields
    ========================================================= */
 .auth-card {
   max-width: 440px; margin: 0 auto;
@@ -537,8 +563,9 @@ em { color: inherit; font-style: normal; }
 .account-row .v { color: var(--ink); font-weight: 600; text-align: right; }
 
 /* =========================================================
-   Cart drawer
+   12. Cart drawer / Mobile menu / Toast
    ========================================================= */
+/* Cart drawer — slides in from the right when you click the cart icon */
 .scrim {
   position: fixed; inset: 0; background: rgba(17,20,24,.5);
   opacity: 0; visibility: hidden; transition: var(--t); z-index: 90;
@@ -594,9 +621,7 @@ em { color: inherit; font-style: normal; }
 .cart-item .remove { color: var(--muted); font-size: .75rem; }
 .cart-item .remove:hover { color: var(--brand); }
 
-/* =========================================================
-   Mobile menu
-   ========================================================= */
+/* Mobile menu — slides in from the LEFT (hamburger button) */
 .mobile-nav {
   position: fixed; top: 0; left: 0; height: 100dvh; width: min(320px, 86vw);
   background: #fff; z-index: 100; padding: 20px;
@@ -630,9 +655,7 @@ em { color: inherit; font-style: normal; }
 }
 .mobile-nav-auth #mobile-logout-btn:hover { background: var(--brand-soft); }
 
-/* =========================================================
-   Toast
-   ========================================================= */
+/* Toast — small popup message in the bottom-right (auto-dismiss) */
 .toast-stack {
   position: fixed; bottom: 24px; right: 24px;
   display: flex; flex-direction: column; gap: 10px;
@@ -658,13 +681,14 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Reveal on scroll
+   13. Reveal on scroll — fade-in effect (paired with setupReveal in script.js)
    ========================================================= */
 .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.in { opacity: 1; transform: translateY(0); }
 
 /* =========================================================
-   Responsive
+   Responsive — rules that only apply on small screens
+   (max-width: 880px = tablet, max-width: 520px = phone)
    ========================================================= */
 @media (max-width: 880px) {
   .nav-links,
@@ -687,11 +711,15 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Product card link tweaks + Product Detail Page
+   14. Product Detail / Account / Checkout / Orders / Addresses
    ========================================================= */
+
+/* Product card link tweaks — make image + title clickable but invisible-styled */
 .product .media { display: block; text-decoration: none; }
 .product h3 a { color: inherit; text-decoration: none; }
 .product h3 a:hover { color: var(--brand); }
+
+/* Heart / wishlist button that floats over the product image */
 .product { position: relative; }
 .product > .wish {
   position: absolute; top: 10px; right: 10px;
@@ -705,11 +733,13 @@ em { color: inherit; font-style: normal; }
 .product > .wish:hover { background: #fff; transform: scale(1.08); }
 .product > .wish.on { color: var(--brand); }
 
+/* Breadcrumbs (Home › Products › iPhone) at the top of the detail page */
 .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: 24px; }
 .crumbs a { color: var(--muted); text-decoration: none; text-transform: capitalize; }
 .crumbs a:hover { color: var(--brand); }
 .crumbs span { color: var(--ink); text-transform: capitalize; }
 
+/* Product detail page — image on the left, info on the right */
 .product-detail {
   display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;
 }
@@ -753,7 +783,7 @@ em { color: inherit; font-style: normal; }
 }
 
 /* =========================================================
-   Account page
+   Account page — header bar + "Edit profile" link button
    ========================================================= */
 .account-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
 .account-head h2 { margin: 0; }
@@ -762,7 +792,9 @@ em { color: inherit; font-style: normal; }
 .link-btn { background: none; border: 0; color: var(--brand); font: inherit; cursor: pointer; padding: 0; text-decoration: underline; }
 .link-btn:hover { opacity: .8; }
 
-/* ============ Checkout ============ */
+/* ============ Checkout ============
+   2-column layout: form on the left, order summary on the right.
+   Collapses to a single column on tablets and phones. */
 .checkout-grid{
   display:grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -828,6 +860,8 @@ em { color: inherit; font-style: normal; }
 }
 
 /* ============ Orders ============ */
+
+/* "Thank you for your order!" banner shown right after checkout */
 .thank-banner{
   display:flex;
   gap:16px;
@@ -840,6 +874,7 @@ em { color: inherit; font-style: normal; }
 }
 .thank-banner .icon{ font-size:2rem; }
 
+/* List of past orders — each order is a clickable card */
 .orders-list{ display:grid; gap:12px; }
 .order-card{
   display:block;
@@ -869,6 +904,7 @@ em { color: inherit; font-style: normal; }
 }
 .order-card-body strong{ color:#222; font-size:1.05rem; }
 
+/* Single-order page — items on the left, delivery info on the right */
 .order-detail{
   display:grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -879,7 +915,7 @@ em { color: inherit; font-style: normal; }
 
 .order-items .co-item:first-child{ padding-top:0; }
 
-/* status pills */
+/* Colored status pills (Pending / Packed / Shipped / Delivered / Cancelled) */
 .status-pill{
   display:inline-block;
   padding:4px 12px;
@@ -894,7 +930,8 @@ em { color: inherit; font-style: normal; }
 .status-delivered { background:#dff5e1; color:#15692a; }
 .status-cancelled { background:#fde0e0; color:#a31919; }
 
-/* ===== Saved Addresses ===== */
+/* ===== Saved Addresses (Account page) =====
+   Up to 3 cards, each with a label pill, full info, and edit / delete buttons. */
 .addr-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -922,7 +959,9 @@ em { color: inherit; font-style: normal; }
 .addr-card-body { font-size: .92rem; line-height: 1.45; }
 .addr-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
 
-/* ===== Checkout address picker ===== */
+/* ===== Checkout address picker =====
+   Quick-pick buttons at the top of the checkout form so the
+   user can fill the form from a saved address with one click. */
 .addr-picker {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
